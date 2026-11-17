@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tech Solutions Excel Assistant</title>
+<meta name="description" content="Upload an Excel or CSV file and get filtered tables, totals and charts by typing or speaking a command in Tamil or English. Works offline.">
+<meta name="theme-color" content="#1f6feb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--muted:#667085;--line:#e3e7ef;--brand:#1f6feb;--brand2:#0f9d58;--warn:#b42318;--chip:#eef4ff;--ok:#067647}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nirmala UI","Noto Sans Tamil","Latha",system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:linear-gradient(90deg,#1f6feb,#0f9d58);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:700}
+header .sub{opacity:.92;font-size:13px}
+header .offline{margin-left:auto;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:20px;font-size:12px}
+main{max-width:1240px;margin:16px auto;padding:0 16px;display:grid;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:15px;margin:0 0 10px;color:#344054}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#drop{border:2px dashed #b8c4dc;border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:.15s;background:#fafbff}
+#drop.over{border-color:var(--brand);background:#eef4ff}
+#drop b{color:var(--brand)}
+#fileInfo{font-size:13px;color:var(--muted)}
+button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;color:var(--ink)}
+button:hover{border-color:#98a2b3}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button.primary:hover{background:#1858c4}
+button.green{background:var(--brand2);border-color:var(--brand2);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+select,input[type=text]{font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink)}
+#cmd{flex:1;min-width:260px;font-size:16px;padding:11px 14px}
+#mic{width:46px;height:44px;padding:0;font-size:20px;border-radius:50%}
+#mic.listening{background:#fee4e2;border-color:#f04438;animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,68,56,.5)}100%{box-shadow:0 0 0 12px rgba(240,68,56,0)}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border:1px solid #d1e0ff;color:#1849a9;border-radius:16px;padding:4px 10px;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip:hover{background:#dbe8ff}
+.chip .t{font-size:10px;opacity:.7;margin-left:4px}
+.chip.ex{background:#ecfdf3;border-color:#abefc6;color:#067647}
+.chip.step{background:#f2f4f7;border-color:#e4e7ec;color:#344054;cursor:default}
+#status{font-size:13px;color:var(--muted);min-height:18px}
+#status.err{color:var(--warn)}
+#understood{display:none}
+.warn{color:#b54708;font-size:13px;margin-top:6px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.tab{border:none;border-bottom:3px solid transparent;border-radius:0;padding:8px 14px;background:none}
+.tab.active{border-bottom-color:var(--brand);color:var(--brand);font-weight:600}
+.tablewrap{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 10px;border-bottom:1px solid #eef0f4;text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:#f8f9fc;font-weight:600;z-index:1;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover{background:#f9fafb}
+tfoot td{position:sticky;bottom:0;background:#f0f6ff;font-weight:600;border-top:1px solid var(--line)}
+.rowno{color:#98a2b3;width:1%}
+#meta{font-size:13px;color:var(--muted)}
+#chartBox{position:relative}
+#chartMsg{color:var(--muted);font-size:14px;padding:20px;text-align:center}
+.hist{font-size:13px;color:#475467;display:flex;flex-direction:column;gap:4px;max-height:160px;overflow:auto}
+.hist div{padding:3px 0;border-bottom:1px dashed #eaecf0}
+.help{font-size:13.5px;line-height:1.7;color:#344054}
+.help code{background:#f2f4f7;padding:1px 6px;border-radius:5px;font-family:inherit}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+label.chk{font-size:13px;color:#475467;display:flex;gap:6px;align-items:center}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon-192.png" alt="" width="34" height="34" style="border-radius:8px"><h1>Tech Solutions Excel Assistant</h1>
+  <span class="sub">Excel அப்லோட் பண்ணுங்க → கமாண்ட் டைப் பண்ணுங்க அல்லது பேசுங்க → அவுட்புட் ரெடி</span>
+  <span class="offline">🔒 உங்க டேட்டா உங்க கம்ப்யூட்டரை விட்டு வெளியே போகாது</span>
+</header>
+
+<main>
+  <!-- Upload -->
+  <section class="card">
+    <h2>1. Excel / CSV ஃபைல்</h2>
+    <div id="drop">
+      <div style="font-size:30px">📁</div>
+      <div><b>இங்கே கிளிக் பண்ணுங்க</b> அல்லது ஃபைலை இழுத்து விடுங்க (.xlsx, .xlsm, .csv)</div>
+      <input type="file" id="file" accept=".xlsx,.xlsm,.csv,.txt" class="hidden">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span id="fileInfo">இன்னும் ஃபைல் எதுவும் ஏற்றப்படவில்லை.</span>
+      <span id="sheetWrap" class="hidden">Sheet: <select id="sheet"></select></span>
+    </div>
+    <div id="colsWrap" class="hidden" style="margin-top:10px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Columns (கிளிக் பண்ணா கமாண்டில் சேரும்):</div>
+      <div class="chips" id="cols"></div>
+    </div>
+  </section>
+
+  <!-- Command -->
+  <section class="card">
+    <h2>2. கமாண்ட்</h2>
+    <div class="row">
+      <input type="text" id="cmd" placeholder="உதா: City வாரியா Amount total  /  Chennai மட்டும்  /  top 10 Amount" autocomplete="off">
+      <button id="mic" title="பேசி கமாண்ட் கொடுக்க">🎤</button>
+      <select id="lang" title="வாய்ஸ் மொழி">
+        <option value="ta-IN">தமிழ்</option>
+        <option value="en-IN">English</option>
+      </select>
+      <button class="primary" id="run">▶ Run</button>
+    </div>
+    <div class="row" style="margin-top:10px;justify-content:space-between">
+      <label class="chk"><input type="checkbox" id="chain" checked> முந்தைய முடிவின் மேல் தொடரவும்</label>
+      <div class="row">
+        <button id="undo" disabled>↶ Undo</button>
+        <button id="reset" disabled>⟲ Original டேட்டா</button>
+      </div>
+    </div>
+    <div id="status"></div>
+    <div id="exWrap" class="hidden" style="margin-top:10px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">உதாரண கமாண்ட்கள் (கிளிக் பண்ணி ட்ரை பண்ணுங்க):</div>
+      <div class="chips" id="examples"></div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <!-- Result -->
+    <section class="card">
+      <h2>3. அவுட்புட்</h2>
+      <div id="understood" style="margin-bottom:10px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">நான் புரிஞ்சுக்கிட்டது:</div>
+        <div class="chips" id="steps"></div>
+        <div id="warns"></div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-bottom:8px">
+        <span id="meta"></span>
+        <div class="row">
+          <button class="green" id="dlx" disabled>⬇ Excel</button>
+          <button id="dlc" disabled>⬇ CSV</button>
+          <button id="dlp" disabled class="hidden">⬇ Chart PNG</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="table">Table</button>
+        <button class="tab" data-tab="chart">Chart</button>
+      </div>
+      <div id="tabTable"><div class="tablewrap" id="tableWrap"><div id="chartMsg">ஃபைலை ஏற்றினா டேட்டா இங்கே தெரியும்.</div></div></div>
+      <div id="tabChart" class="hidden">
+        <div class="row" style="margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Chart வகை:</span>
+          <select id="ctype"><option value="bar">Bar</option><option value="line">Line</option><option value="pie">Pie</option></select>
+        </div>
+        <div id="chartBox"><canvas id="chart"></canvas><div id="chartMsg2" class="hidden" style="color:var(--muted);padding:20px;text-align:center"></div></div>
+      </div>
+    </section>
+
+    <!-- Side -->
+    <aside style="display:grid;gap:14px;align-content:start">
+      <section class="card">
+        <h2>கமாண்ட் ஹிஸ்டரி</h2>
+        <div class="hist" id="hist"><span style="color:var(--muted)">இன்னும் எதுவும் இல்லை.</span></div>
+      </section>
+      <section class="card help">
+        <h2>எப்படி கமாண்ட் கொடுக்கலாம்?</h2>
+        <div><b>Filter:</b> <code>Chennai மட்டும்</code> <code>City not Chennai</code> <code>Amount > 5000</code> <code>Amount 5000க்கு மேல்</code> <code>Amount between 1000 and 5000</code></div>
+        <div><b>மொத்தம் / சராசரி:</b> <code>City வாரியா Amount total</code> <code>total Amount by Region</code> <code>average Amount</code> <code>City wise count</code></div>
+        <div><b>தேதி:</b> <code>month wise Amount total</code> <code>January 2026</code> <code>Date after 01-01-2026</code></div>
+        <div><b>வரிசை / Top:</b> <code>Amount high to low</code> <code>sort by Name</code> <code>top 10 Amount</code> <code>top 5 City by Amount</code></div>
+        <div><b>மற்றவை:</b> <code>show Name, Amount</code> <code>unique City</code> <code>remove duplicates</code> <code>search raj</code> <code>Phone blank</code></div>
+        <div><b>Chart:</b> <code>City wise Amount chart</code> <code>pie chart</code> <code>month wise Amount line chart</code></div>
+        <div style="margin-top:6px;color:var(--muted)">💡 ஒவ்வொரு கமாண்டும் முந்தைய முடிவின் மேல் வேலை செய்யும். புதுசா ஆரம்பிக்க “Original டேட்டா” அழுத்துங்க அல்லது கமாண்ட் முன்னாடி <code>reset</code> சேருங்க.</div>
+        <div style="color:var(--muted)">🎤 Column பெயர்கள் ஆங்கிலத்தில் இருந்தா, “English” வாய்ஸ் தேர்வு பண்ணா இன்னும் சரியா புரியும். தமிழ்ல பேசினாலும் (உதா: “சென்னை மட்டும்”) புரிஞ்சுக்க முயற்சி பண்ணும்.</div>
+      </section>
+    </aside>
+  </div>
+</main>
+<footer style="text-align:center;font-size:12px;color:#98a2b3;padding:6px 0 18px">Tech Solutions Excel Assistant · <a href="privacy.html" style="color:#667085">Privacy Policy</a></footer>
+
+<script>
+'use strict';
+/* =====================================================================
+   Excel Command App — single file, works offline, no external libraries
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const state = { fileName:'', sheets:[], original:null, current:null, history:[], lastPlanChart:null };
+
+/* ---------------------------- helpers ------------------------------ */
+const TA_RE = /[஀-௿]/;
+const LBND = '[\\p{L}\\p{M}\\p{N}]';
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const isEmpty = v => v === null || v === undefined || v === '';
+function kwRe(w, flags = 'u') {
+  if (/^[^\p{L}\p{N}]+$/u.test(w)) return new RegExp(escRe(w), flags);              // symbols like >=
+  if (/^[\x00-\x7F]+$/.test(w)) return new RegExp('(?<!' + LBND + ')' + escRe(w) + '(?!' + LBND + ')', flags);
+  if (w.length >= 4) return new RegExp(escRe(w), flags);                               // Tamil: allow suffixes
+  return new RegExp('(?<!' + LBND + ')' + escRe(w) + '(?!' + LBND + ')', flags);
+}
+function normText(s) {
+  return String(s).toLowerCase()
+    .replace(/[​-‍]/g, '')
+    .replace(/(\d),(?=\d{2,3}(?!\d))/g, '$1')
+    .replace(/[“”"'`’‘!?;:]/g, ' ')
+    .replace(/,/g, ' , ')
+    .replace(/\s+/g, ' ').trim();
+}
+const normHeader = h => String(h).toLowerCase().replace(/[_\-./\\]+/g, ' ').replace(/\s+/g, ' ').trim();
+const normVal = v => String(v).toLowerCase().replace(/\s+/g, ' ').trim();
+function fmtNum(n) {
+  if (typeof n !== 'number' || !isFinite(n)) return String(n ?? '');
+  return n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+}
+function compact(n) {
+  const a = Math.abs(n);
+  if (a >= 1e7) return (n / 1e7).toFixed(a >= 1e8 ? 0 : 1) + 'Cr';
+  if (a >= 1e5) return (n / 1e5).toFixed(a >= 1e6 ? 0 : 1) + 'L';
+  if (a >= 1e3) return (n / 1e3).toFixed(a >= 1e4 ? 0 : 1) + 'K';
+  return String(Math.round(n * 100) / 100);
+}
+function coerce(v) {
+  if (typeof v !== 'string') return v;
+  const s = v.trim();
+  if (s === '') return null;
+  const m = s.match(/^(?:₹|rs\.?|inr|\$)?\s*(-?)(\d{1,3}(?:,\d{2,3})+|\d+)(\.\d+)?$/i);
+  if (m) {
+    const digits = m[2].replace(/,/g, '');
+    if (digits.length > 1 && digits[0] === '0' && !m[3]) return s;        // keep codes like 00123
+    if (digits.length > 15) return s;                                      // long IDs stay text
+    return Number(m[1] + digits + (m[3] || ''));
+  }
+  return s;
+}
+const MON3 = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const pad = n => String(n).padStart(2, '0');
+function toISODate(v) {
+  if (typeof v !== 'string') return null;
+  let m, y, mo, d;
+  if ((m = v.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+  else if ((m = v.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) { d = +m[1]; mo = +m[2]; y = +m[3]; }
+  else if ((m = v.match(/^(\d{1,2})[- ]([a-z]{3})[a-z]*[- ,]+(\d{4})/i))) { d = +m[1]; mo = MON3.indexOf(m[2].toLowerCase()) + 1; y = +m[3]; }
+  else if ((m = v.match(/^([a-z]{3})[a-z]*[ -](\d{1,2}),?[ -](\d{4})/i))) { mo = MON3.indexOf(m[1].toLowerCase()) + 1; d = +m[2]; y = +m[3]; }
+  else return null;
+  if (!(mo >= 1 && mo <= 12 && d >= 1 && d <= 31 && y > 1800 && y < 2300)) return null;
+  return `${y}-${pad(mo)}-${pad(d)}`;
+}
+function serialToDate(n) {
+  const ms = Math.round((n - 25569) * 86400000);
+  const dt = new Date(ms);
+  const date = `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  if (n < 1) return `${pad(dt.getUTCHours())}:${pad(dt.getUTCMinutes())}`;
+  if (Math.abs(n - Math.round(n)) < 1e-6) return date;
+  return `${date} ${pad(dt.getUTCHours())}:${pad(dt.getUTCMinutes())}`;
+}
+
+/* ---------------------------- ZIP read ----------------------------- */
+async function unzip(buf) {
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('இது சரியான .xlsx ஃபைல் இல்லை (பழைய .xls என்றால் Excel-ல "Save As → .xlsx" பண்ணுங்க).');
+  const count = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const files = {}, lower = {};
+  const td = new TextDecoder();
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(off, true) !== 0x02014b50) break;
+    const method = dv.getUint16(off + 10, true), csize = dv.getUint32(off + 20, true);
+    const nl = dv.getUint16(off + 28, true), el = dv.getUint16(off + 30, true), cl = dv.getUint16(off + 32, true);
+    const localOff = dv.getUint32(off + 42, true);
+    const name = td.decode(u8.subarray(off + 46, off + 46 + nl));
+    files[name] = { method, csize, localOff }; lower[name.toLowerCase()] = name;
+    off += 46 + nl + el + cl;
+  }
+  return {
+    async text(name) {
+      const real = files[name] ? name : lower[name.toLowerCase()];
+      const f = files[real]; if (!f) return null;
+      const lnl = dv.getUint16(f.localOff + 26, true), lel = dv.getUint16(f.localOff + 28, true);
+      const start = f.localOff + 30 + lnl + lel;
+      const data = u8.subarray(start, start + f.csize);
+      let out;
+      if (f.method === 0) out = data;
+      else if (f.method === 8) {
+        if (typeof DecompressionStream === 'undefined') throw new Error('இந்த பிரவுசர் பழையது. Chrome அல்லது Edge புது வெர்ஷன் பயன்படுத்துங்க.');
+        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        out = new Uint8Array(await new Response(stream).arrayBuffer());
+      } else throw new Error('ஆதரிக்காத compression: ' + f.method);
+      return new TextDecoder('utf-8').decode(out);
+    }
+  };
+}
+
+/* --------------------------- XLSX parse ---------------------------- */
+const xmlDoc = s => new DOMParser().parseFromString(s, 'application/xml');
+const byTag = (node, tag) => node.getElementsByTagNameNS('*', tag);
+function attrLocal(el, local) {
+  for (const a of el.attributes) if (a.localName === local) return a.value;
+  return null;
+}
+function colIndex(ref) {
+  let n = 0;
+  for (const ch of ref) { const c = ch.charCodeAt(0); if (c >= 65 && c <= 90) n = n * 26 + (c - 64); else if (c >= 97 && c <= 122) n = n * 26 + (c - 96); else break; }
+  return n - 1;
+}
+function parseShared(xml) {
+  if (!xml) return [];
+  const d = xmlDoc(xml), out = [];
+  for (const si of byTag(d, 'si')) {
+    let s = '';
+    for (const t of byTag(si, 't')) { if (t.parentNode && t.parentNode.localName === 'rPh') continue; s += t.textContent; }
+    out.push(s);
+  }
+  return out;
+}
+function parseDateStyles(xml) {
+  const set = new Set();
+  if (!xml) return set;
+  const d = xmlDoc(xml), custom = {};
+  for (const nf of byTag(d, 'numFmt')) custom[nf.getAttribute('numFmtId')] = nf.getAttribute('formatCode') || '';
+  const isDateFmt = id => {
+    id = +id;
+    if ((id >= 14 && id <= 22) || (id >= 27 && id <= 36) || (id >= 45 && id <= 47) || (id >= 50 && id <= 58)) return true;
+    const code = custom[id]; if (!code) return false;
+    const c = code.replace(/"[^"]*"/g, '').replace(/\[[^\]]*\]/g, '').replace(/\\./g, '');
+    return /[dmy]/i.test(c) && !/^[#0.,%\s]*$/.test(c);
+  };
+  const cellXfs = byTag(d, 'cellXfs')[0];
+  if (cellXfs) {
+    let i = 0;
+    for (const xf of cellXfs.children) { if (xf.localName !== 'xf') continue; if (isDateFmt(xf.getAttribute('numFmtId'))) set.add(i); i++; }
+  }
+  return set;
+}
+function parseSheetXml(xml, shared, dateStyles) {
+  const d = xmlDoc(xml), raw = [];
+  for (const r of byTag(d, 'row')) {
+    const ri = r.getAttribute('r') ? parseInt(r.getAttribute('r'), 10) - 1 : raw.length;
+    const arr = []; let ci = 0;
+    for (const c of r.children) {
+      if (c.localName !== 'c') continue;
+      const ref = c.getAttribute('r'); if (ref) ci = colIndex(ref);
+      const t = c.getAttribute('t'), s = c.getAttribute('s');
+      let vEl = null, isEl = null;
+      for (const k of c.children) { if (k.localName === 'v') vEl = k; else if (k.localName === 'is') isEl = k; }
+      let val = null;
+      if (t === 's') val = vEl ? (shared[+vEl.textContent] ?? '') : null;
+      else if (t === 'inlineStr') val = isEl ? [...byTag(isEl, 't')].map(x => x.textContent).join('') : null;
+      else if (t === 'b') val = vEl ? (vEl.textContent === '1' ? 'TRUE' : 'FALSE') : null;
+      else if (t === 'str' || t === 'e') val = vEl ? vEl.textContent : null;
+      else if (vEl && vEl.textContent !== '') {
+        const n = Number(vEl.textContent);
+        val = isNaN(n) ? vEl.textContent : (s !== null && dateStyles.has(+s) ? serialToDate(n) : n);
+      }
+      if (typeof val === 'string') val = coerce(val);
+      arr[ci] = val; ci++;
+    }
+    raw[ri] = arr;
+  }
+  return raw;
+}
+async function readXlsx(buf) {
+  const z = await unzip(buf);
+  const wb = await z.text('xl/workbook.xml');
+  if (!wb) throw new Error('Workbook கண்டுபிடிக்க முடியலை.');
+  const relsXml = await z.text('xl/_rels/workbook.xml.rels') || '<r/>';
+  const rel = {};
+  for (const r of byTag(xmlDoc(relsXml), 'Relationship')) rel[r.getAttribute('Id')] = r.getAttribute('Target');
+  const shared = parseShared(await z.text('xl/sharedStrings.xml'));
+  const dateStyles = parseDateStyles(await z.text('xl/styles.xml'));
+  const sheets = [];
+  for (const s of byTag(xmlDoc(wb), 'sheet')) {
+    const rid = attrLocal(s, 'id') && s.getAttribute('r:id') || attrLocal(s, 'id');
+    let target = rel[rid]; if (!target) continue;
+    let path = target.startsWith('/') ? target.slice(1) : 'xl/' + target;
+    path = path.replace(/[^/]+\/\.\.\//g, '');
+    sheets.push({ name: s.getAttribute('name'), load: async () => buildTable(parseSheetXml(await z.text(path) || '<x/>', shared, dateStyles), s.getAttribute('name')) });
+  }
+  return sheets;
+}
+
+/* ----------------------------- CSV ------------------------------- */
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/, 1)[0];
+  const delim = [',', ';', '\t', '|'].map(d => [d, first.split(d).length]).sort((a, b) => b[1] - a[1])[0][0];
+  const rows = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === delim) { row.push(f); f = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+    else f += c;
+  }
+  if (f !== '' || row.length) { row.push(f); rows.push(row); }
+  return rows.map(r => r.map(coerce));
+}
+
+/* --------------------------- table model -------------------------- */
+function buildTable(raw, name) {
+  raw = raw.filter(r => r && r.some(v => !isEmpty(v)));
+  if (!raw.length) return { name, headers: [], rows: [], types: [] };
+  let hi = 0, best = -1;
+  for (let i = 0; i < Math.min(10, raw.length); i++) {
+    const c = raw[i].filter(v => !isEmpty(v)).length;
+    if (c > best) { best = c; hi = i; }
+  }
+  let width = 0; for (const r of raw) width = Math.max(width, r.length);
+  const seen = {};
+  let headers = Array.from({ length: width }, (_, i) => {
+    let h = raw[hi][i]; h = isEmpty(h) ? `Column ${i + 1}` : String(h).trim();
+    if (seen[h]) { seen[h]++; h = `${h}_${seen[h]}`; } else seen[h] = 1;
+    return h;
+  });
+  let rows = raw.slice(hi + 1).map(r => Array.from({ length: width }, (_, i) => isEmpty(r[i]) ? null : r[i]));
+  // drop auto-named columns that are fully empty
+  const keep = headers.map((h, i) => !(/^Column \d+$/.test(h) && rows.every(r => isEmpty(r[i]))));
+  if (keep.some(k => !k)) { headers = headers.filter((_, i) => keep[i]); rows = rows.map(r => r.filter((_, i) => keep[i])); }
+  const t = { name, headers, rows };
+  t.types = inferTypes(t);
+  return t;
+}
+function inferTypes(t) {
+  return t.headers.map((_, ci) => {
+    let n = 0, num = 0, dt = 0;
+    for (let r = 0; r < t.rows.length && n < 3000; r++) {
+      const v = t.rows[r][ci]; if (isEmpty(v)) continue; n++;
+      if (typeof v === 'number') num++; else if (toISODate(v)) dt++;
+    }
+    if (!n) return 'text';
+    if (num / n >= 0.8) return 'num';
+    if (dt / n >= 0.8) return 'date';
+    return 'text';
+  });
+}
+const ID_RE = /(^|\s)(id|no|nos|number|code|phone|mobile|cell|contact|pin|pincode|zip|s ?no|sl ?no|sr ?no|serial|invoice|order no|bill no|account|a\/c|gst|gstin|aadhar|pan|year)($|\s)/i;
+const isIdLike = h => ID_RE.test(normHeader(h)) && !/amount|value|price|total|qty|quantity|sales|cost/i.test(h);
+const distinctCache = new WeakMap();
+function distinct(T, ci) {
+  let m = distinctCache.get(T); if (!m) { m = {}; distinctCache.set(T, m); }
+  if (m[ci]) return m[ci];
+  const map = new Map();
+  for (const r of T.rows) {
+    const v = r[ci]; if (isEmpty(v)) continue;
+    const k = normVal(v); const e = map.get(k);
+    if (e) e.n++; else map.set(k, { orig: v, n: 1 });
+    if (map.size > 20000) break;
+  }
+  return (m[ci] = map);
+}
+
+/* ------------------------- command keywords ----------------------- */
+const K = {
+  reset: ['reset', 'start over', 'clear all', 'original data', 'ரீசெட்', 'முதலிலிருந்து', 'ஆரம்பத்திலிருந்து'],
+  undo: ['undo', 'go back', 'அன்டூ', 'பின்னால் போ', 'முந்தையது'],
+  noise: ['show me', 'give me', 'filter by', 'filter', 'where', 'only', 'just', 'please', 'rows', 'records', 'data', 'list',
+          'மட்டுமே', 'மட்டும்', 'வேண்டும்', 'வேணும்', 'போடு', 'எடு', 'கொடு', 'பண்ணு', 'அதுல', 'இதுல', 'அப்புறம்', 'எல்லாம்'],
+  desc: ['high to low', 'highest first', 'largest first', 'biggest first', 'descending', 'desc', 'z to a', 'அதிகம் முதல்', 'அதிகமானது முதல்', 'பெரியது முதல்', 'அதிகத்திலிருந்து', 'இறங்கு வரிசை', 'இறங்கு'],
+  asc: ['low to high', 'lowest first', 'smallest first', 'ascending', 'asc', 'a to z', 'குறைவு முதல்', 'குறைவானது முதல்', 'சிறியது முதல்', 'குறைவிலிருந்து', 'ஏறு வரிசை', 'ஏறு'],
+  chart: ['chart', 'graph', 'plot', 'visualize', 'சார்ட்', 'கிராஃப்', 'கிராப்', 'வரைபடம்'],
+  pie: ['pie', 'பை'], line: ['line', 'trend', 'லைன்'], bar: ['bar', 'பார்'],
+  dedupe: ['remove duplicates', 'remove duplicate', 'delete duplicates', 'duplicates', 'duplicate', 'dedupe', 'டூப்ளிகேட்', 'நகல்களை நீக்கு', 'நகல்'],
+  search: ['search for', 'search', 'find', 'containing', 'contains', 'தேடு', 'தேடவும்'],
+  notblank: ['not blank', 'not empty', 'non empty', 'non blank', 'filled', 'காலி இல்லாத'],
+  blank: ['blank', 'empty', 'missing', 'காலியான', 'காலி'],
+  month: ['monthly', 'month', 'மாதவாரி', 'மாதம்', 'மாத', 'மாசம்', 'மாச', 'மன்த்'],
+  year: ['yearly', 'annual', 'year', 'வருடம்', 'வருட', 'ஆண்டு', 'இயர்'],
+  byAfter: ['for each', 'by', 'per', 'each', 'ஒவ்வொரு'],
+  byBefore: ['wise', 'வாரியாக', 'வாரியான', 'வாரியா', 'வாரி', 'வைஸ்'],
+  sum: ['total', 'sum', 'மொத்தம்', 'மொத்த', 'கூட்டுத்தொகை', 'கூட்டு', 'டோட்டல்'],
+  avg: ['average', 'avg', 'mean', 'சராசரி', 'ஆவரேஜ்'],
+  count: ['count', 'how many', 'number of', 'no of', 'எண்ணிக்கை', 'எத்தனை', 'கவுண்ட்'],
+  max: ['maximum', 'max', 'highest', 'largest', 'biggest', 'அதிகபட்சம்', 'அதிகபட்ச', 'மேக்ஸ்'],
+  min: ['minimum', 'min', 'lowest', 'smallest', 'குறைந்தபட்சம்', 'குறைந்தபட்ச'],
+  sort: ['sort', 'order by', 'arrange', 'வரிசைப்படுத்து', 'வரிசைப்படுத்தி', 'சோர்ட்'],
+  unique: ['unique', 'distinct', 'தனித்தனி', 'யுனிக்'],
+  show: ['show', 'display', 'select', 'columns', 'column', 'காட்டு', 'காண்பி'],
+  neg: ['not', 'except', 'excluding', 'other than', 'without', 'தவிர', 'இல்லாத', 'அல்லாத'],
+  gte: ['>=', 'at least', 'or more', 'or above', 'குறைந்தது'],
+  lte: ['<=', 'at most', 'or less', 'or below'],
+  gt: ['>', 'greater than', 'more than', 'above', 'over', 'exceeding', 'க்கு மேல்', 'மேல்', 'மேலே', 'அதிகமான', 'அதிகம்'],
+  lt: ['<', 'less than', 'below', 'under', 'fewer than', 'க்கு கீழ்', 'கீழ்', 'கீழே', 'குறைவான', 'குறைவு'],
+  neq: ['!=', '<>', 'not equal', 'not'],
+  after: ['after', 'since', 'from', 'onwards', 'பிறகு', 'பின்'],
+  before: ['before', 'until', 'till', 'upto', 'முன்', 'முன்பு'],
+};
+for (const k in K) K[k].sort((a, b) => b.length - a.length);
+const MONTHS = [['january', 'jan', 'ஜனவரி'], ['february', 'feb', 'பிப்ரவரி', 'பெப்ரவரி'], ['march', 'mar', 'மார்ச்'], ['april', 'apr', 'ஏப்ரல்'], ['may', 'மே'], ['june', 'jun', 'ஜூன்'], ['july', 'jul', 'ஜூலை'], ['august', 'aug', 'ஆகஸ்ட்', 'ஆகஸ்டு'], ['september', 'sept', 'sep', 'செப்டம்பர்'], ['october', 'oct', 'அக்டோபர்'], ['november', 'nov', 'நவம்பர்'], ['december', 'dec', 'டிசம்பர்']];
+const MON_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const AGG_LABEL = { sum: 'Total', avg: 'Average', count: 'Count', max: 'Max', min: 'Min' };
+const AGG_TA = { sum: 'மொத்தம்', avg: 'சராசரி', count: 'எண்ணிக்கை', max: 'அதிகபட்சம்', min: 'குறைந்தபட்சம்' };
+const ALL_TA_KW = Object.values(K).flat().concat(MONTHS.flat()).filter(w => TA_RE.test(w));
+
+function findKw(s, words) {
+  const out = [];
+  for (const w of words) { const re = kwRe(w, 'gu'); let m; while ((m = re.exec(s))) out.push({ w, start: m.index, end: m.index + m[0].length }); }
+  return out.sort((a, b) => a.start - b.start);
+}
+const blankOut = (W, a, b) => { W.s = W.s.slice(0, a) + ' '.repeat(b - a) + W.s.slice(b); };
+function take(W, words) {
+  const hits = [];
+  for (const w of words) {
+    const re = kwRe(w);
+    let m;
+    while ((m = re.exec(W.s))) { hits.push({ w, start: m.index, end: m.index + m[0].length }); blankOut(W, m.index, m.index + m[0].length); }
+  }
+  return hits.sort((a, b) => a.start - b.start);
+}
+function takeRe(W, re) {   // re must be non-global
+  const hits = []; let m;
+  while ((m = re.exec(W.s))) { hits.push({ m, start: m.index, end: m.index + m[0].length }); blankOut(W, m.index, m.index + m[0].length); }
+  return hits;
+}
+const NUM = '(-?\\d+(?:\\.\\d+)?)\\s*(k(?![a-z])|lakhs?|lacs?|crores?|thousand|ஆயிரம்|ஆயிரத்|லட்சம்|லட்ச|கோடி)?';
+function numVal(n, mult) {
+  let v = parseFloat(n);
+  if (!mult) return v;
+  if (/^k$|thousand|ஆயிர/.test(mult)) v *= 1e3;
+  else if (/lakh|lac|லட்ச/.test(mult)) v *= 1e5;
+  else if (/crore|கோடி/.test(mult)) v *= 1e7;
+  return v;
+}
+
+/* --------------- Tamil speech → column / value bridge -------------- */
+function skelLatin(w) {
+  w = String(w).toLowerCase().replace(/[^a-z]/g, '');
+  w = w.replace(/ch|sh/g, 's').replace(/ph/g, 'p').replace(/th/g, 't').replace(/ck/g, 'k').replace(/qu/g, 'k').replace(/x/g, 'ks')
+    .replace(/c(?=[eiy])/g, 's').replace(/g(?=[ei])/g, 's').replace(/[cqg]/g, 'k').replace(/[zj]/g, 's')
+    .replace(/b/g, 'p').replace(/d/g, 't').replace(/f/g, 'p').replace(/[hwvy]/g, '').replace(/[aeiou]/g, '');
+  return w.replace(/(.)\1+/g, '$1');
+}
+const TA_CONS = { 'க': 'k', 'ங': 'n', 'ச': 's', 'ஞ': 'n', 'ட': 't', 'ண': 'n', 'த': 't', 'ந': 'n', 'ப': 'p', 'ம': 'm', 'ர': 'r', 'ல': 'l', 'ழ': 'l', 'ள': 'l', 'ற': 'r', 'ன': 'n', 'ஜ': 's', 'ஷ': 's', 'ஸ': 's', 'ஃ': 'p' };
+function skelTamil(w) { let o = ''; for (const ch of w) o += TA_CONS[ch] || ''; return o.replace(/(.)\1+/g, '$1'); }
+function bridgeTamil(text, T) {
+  if (!TA_RE.test(text)) return text;
+  const hdr = new Map(), val = new Map();
+  T.headers.forEach(h => { const sk = skelLatin(h); if (sk.length >= 2 && !hdr.has(sk)) hdr.set(sk, normHeader(h)); });
+  T.types.forEach((ty, ci) => {
+    if (ty !== 'text') return;
+    const d = distinct(T, ci); if (d.size > 3000) return;
+    for (const [k] of d) { if (k.length < 3 || TA_RE.test(k)) continue; const sk = skelLatin(k); if (sk.length < 2) continue; val.set(sk, val.has(sk) && val.get(sk) !== k ? null : k); }
+  });
+  const isKw = tok => ALL_TA_KW.some(k => tok.includes(k) || k.includes(tok));
+  const toks = text.split(' ');
+  for (let i = 0; i < toks.length; i++) {
+    const t = toks[i];
+    if (!TA_RE.test(t) || isKw(t)) continue;
+    if (i + 1 < toks.length && TA_RE.test(toks[i + 1]) && !isKw(toks[i + 1])) {
+      const sk2 = skelTamil(t + toks[i + 1]);
+      if (hdr.has(sk2)) { toks[i] = hdr.get(sk2); toks[i + 1] = ''; i++; continue; }
+    }
+    const sk = skelTamil(t);
+    const tries = [sk, sk.slice(0, -1), sk.slice(0, -2)].filter(x => x.length >= 2);
+    let rep = null;
+    for (const s of tries) { if (hdr.has(s)) { rep = hdr.get(s); break; } if (val.get(s)) { rep = val.get(s); break; } }
+    if (rep) toks[i] = rep;
+  }
+  return toks.filter(Boolean).join(' ');
+}
+
+/* ----------------------------- parser ------------------------------ */
+function findMentions(s, headers) {
+  const cands = headers.map((h, i) => ({ i, n: normHeader(h) })).filter(c => c.n).sort((a, b) => b.n.length - a.n.length);
+  const taken = new Uint8Array(s.length), out = [];
+  for (const c of cands) {
+    const vars = [c.n]; if (c.n.includes(' ')) vars.push(c.n.replace(/ /g, ''));
+    for (const v of vars) {
+      const re = /^[\x00-\x7F]+$/.test(v)
+        ? new RegExp('(?<!' + LBND + ')' + escRe(v) + '(?:s|es)?(?!' + LBND + ')', 'gu')
+        : new RegExp(escRe(v), 'gu');
+      let m;
+      while ((m = re.exec(s))) {
+        const a = m.index, b = a + m[0].length;
+        if (taken.subarray(a, b).some(x => x)) continue;
+        taken.fill(1, a, b); out.push({ col: c.i, start: a, end: b, used: false });
+      }
+    }
+  }
+  return out.sort((a, b) => a.start - b.start);
+}
+
+function parseCommand(raw, T) {
+  const P = { filters: [], group: [], period: null, aggs: [], sortCol: null, dir: null, limit: null, rankCol: null, select: null,
+              chart: null, unique: null, dedupe: false, reset: false, warnings: [] };
+  const H = T.headers, types = T.types;
+  let text = bridgeTamil(normText(raw), T);
+  const W = { s: ' ' + text + ' ' };
+  if (findKw(W.s, K.undo).length) return { undo: true };
+  if (take(W, K.reset).length) P.reset = true;
+
+  // direction words (remember where they were)
+  let dirPos = -1;
+  let h = take(W, K.desc); if (h.length) { P.dir = 'desc'; dirPos = h[0].start; }
+  h = take(W, K.asc); if (h.length && !P.dir) { P.dir = 'asc'; dirPos = h[0].start; }
+
+  // chart
+  if (take(W, K.chart).length) {
+    P.chart = 'bar';
+    if (take(W, K.pie).length) P.chart = 'pie'; else if (take(W, K.line).length) P.chart = 'line'; else take(W, K.bar);
+  } else if (findKw(W.s, ['pie']).length) { take(W, ['pie']); P.chart = 'pie'; }
+
+  if (take(W, K.dedupe).length) P.dedupe = true;
+  take(W, K.noise);
+
+  const dateCols = types.map((t, i) => t === 'date' ? i : -1).filter(i => i >= 0);
+
+  // ---- number-based patterns first (before column names are searched)
+  const dateLits = takeRe(W, /(?<![\d])(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4})(?![\d])/u).map(x => ({ iso: toISODate(x.m[1]), start: x.start, end: x.end })).filter(x => x.iso);
+  const ranges = [];
+  for (const re of [new RegExp('between\\s+' + NUM + '\\s*(?:and|to|-|&)\\s*' + NUM, 'u'),
+                    new RegExp(NUM + '\\s*(?:to|முதல்|இலிருந்து|லிருந்து|ல இருந்து)\\s*' + NUM + '(?:\\s*(?:வரைக்கும்|வரை))?', 'u'),
+                    new RegExp(NUM + '\\s*(?:க்கும்|உம்)?\\s*' + NUM + '\\s*(?:க்கும்)?\\s*(?:இடையில்|இடையே|நடுவில்)', 'u')]) {
+    for (const x of takeRe(W, re)) ranges.push({ a: numVal(x.m[1], x.m[2]), b: numVal(x.m[3], x.m[4]), start: x.start, end: x.end });
+  }
+  let rankHint = -1;
+  for (const x of takeRe(W, /(?:top|first|டாப்|முதல்)\s*(\d+)(?:\s+(?:by|on|based on|in))?/u)) { P.limit = { n: +x.m[1], from: 'top' }; rankHint = x.end; }
+  for (const x of takeRe(W, /(?:bottom|last|lowest|least|கடைசி)\s*(\d+)(?:\s+(?:by|on|based on|in))?/u)) { P.limit = { n: +x.m[1], from: 'bottom' }; rankHint = x.end; }
+
+  // ---- months (only if there is a date column)
+  const monthHits = [];
+  if (dateCols.length) {
+    MONTHS.forEach((names, mi) => {
+      for (const n of names) {
+        const re = kwRe(n); let m;
+        while ((m = re.exec(W.s))) {
+          const a = m.index, b = a + m[0].length; blankOut(W, a, b);
+          let y = null; const ym = W.s.slice(b).match(/^\s*(\d{4})(?!\d)/);
+          if (ym) { y = +ym[1]; blankOut(W, b, b + ym[0].length); }
+          monthHits.push({ m: mi + 1, y, start: a });
+        }
+      }
+    });
+  }
+
+  // ---- sort keyword (+ optional "by") and search keyword
+  let sortHint = -1;
+  for (const x of takeRe(W, new RegExp('(?:' + K.sort.map(escRe).join('|') + ')(?:\\s+(?:by|on|படி))?', 'u'))) sortHint = x.end;
+
+  // ---- column mentions
+  const M = findMentions(W.s, H);
+  for (const mm of M) blankOut(W, mm.start, mm.end);
+  const mentionNear = (pos, { side = 'any', gap = 6, pred = () => true } = {}) => {
+    let best = null, bd = 1e9;
+    for (const mm of M) {
+      if (!pred(mm)) continue;
+      let d;
+      if (mm.end <= pos) { if (side === 'after') continue; d = pos - mm.end; }
+      else if (mm.start >= pos) { if (side === 'before') continue; d = mm.start - pos; }
+      else d = 0;
+      if (d <= gap && d < bd) { bd = d; best = mm; }
+    }
+    return best;
+  };
+
+  // search / contains
+  for (const x of takeRe(W, new RegExp('(?:' + K.search.map(escRe).join('|') + ')\\s+(.+?)(?=\\s+(?:and|மற்றும்)\\s|\\s*$)', 'u'))) {
+    const term = x.m[1].trim(); if (!term) continue;
+    const col = mentionNear(x.start, { side: 'before', gap: 4 });
+    if (col) col.used = true;
+    P.filters.push({ op: 'contains', col: col ? col.col : -1, value: term });
+  }
+
+  // ---- text values (e.g. "chennai")
+  const vhits = [];
+  types.forEach((ty, ci) => {
+    if (ty === 'num') return;
+    for (const [k, e] of distinct(T, ci)) {
+      if (k.length < 2 || /^-?\d+(\.\d+)?$/.test(k) || !W.s.includes(k)) continue;
+      const re = new RegExp('(?<!' + LBND + ')' + escRe(k) + '(?!' + LBND + ')', 'gu'); let m;
+      while ((m = re.exec(W.s))) vhits.push({ ci, k, orig: e.orig, start: m.index, end: m.index + k.length });
+    }
+  });
+  vhits.sort((a, b) => (b.end - b.start) - (a.end - a.start));
+  const vtaken = new Uint8Array(W.s.length), vsel = [];
+  for (const v of vhits) {
+    if (vtaken.subarray(v.start, v.end).some(x => x)) {
+      const same = vsel.find(s => s.start === v.start && s.end === v.end); if (same) same.alts.push(v.ci);
+      continue;
+    }
+    vtaken.fill(1, v.start, v.end); vsel.push({ ...v, alts: [v.ci] });
+  }
+  const valFilters = {};
+  for (const v of vsel) {
+    let ci = v.ci;
+    if (v.alts.length > 1) {
+      const near = mentionNear(v.start, { gap: 25, pred: mm => v.alts.includes(mm.col) });
+      if (near) ci = near.col;
+      else P.warnings.push(`"${v.orig}" பல column-களில் இருக்கு; "${H[ci]}" column-ஐ எடுத்துக்கிட்டேன்.`);
+    }
+    const near = mentionNear(v.start, { gap: 25, pred: mm => mm.col === ci }); if (near) near.used = true;
+    const win = text.length ? W.s.slice(Math.max(0, v.start - 16), v.end + 16) : '';
+    const neg = findKw(' ' + win.replace(/\s+/g, ' ') + ' ', K.neg).length > 0;
+    const key = ci + (neg ? '!' : '');
+    (valFilters[key] = valFilters[key] || { op: neg ? 'notin' : 'in', col: ci, values: [] }).values.push(v.orig);
+    blankOut(W, v.start, v.end);
+  }
+  if (Object.values(valFilters).some(f => f.op === 'notin')) take(W, K.neg);
+  P.filters.push(...Object.values(valFilters));
+
+  // ---- months → filter
+  if (monthHits.length) {
+    const near = mentionNear(monthHits[0].start, { gap: 30, pred: mm => types[mm.col] === 'date' });
+    if (near) near.used = true;
+    P.filters.push({ op: 'month', col: near ? near.col : dateCols[0], months: monthHits.map(x => ({ m: x.m, y: x.y })) });
+  }
+  // ---- date literals → filter
+  if (dateLits.length) {
+    const near = mentionNear(dateLits[0].start, { gap: 40, pred: mm => types[mm.col] === 'date' });
+    const col = near ? near.col : dateCols[0];
+    if (near) near.used = true;
+    if (col === undefined) P.warnings.push('தேதி column கண்டுபிடிக்க முடியலை.');
+    else if (dateLits.length >= 2) P.filters.push({ op: 'dbetween', col, a: dateLits[0].iso, b: dateLits[1].iso });
+    else {
+      const d = dateLits[0], win = W.s.slice(Math.max(0, d.start - 18), d.end + 18);
+      const op = findKw(win, K.after).length ? 'dafter' : findKw(win, K.before).length ? 'dbefore' : 'deq';
+      take({ s: win }, []);
+      P.filters.push({ op, col, a: d.iso });
+      for (const x of findKw(W.s, K.after.concat(K.before))) if (Math.abs(x.start - d.start) < 20) blankOut(W, x.start, x.end);
+    }
+  }
+  // ---- numeric ranges
+  for (const r of ranges) {
+    const col = mentionNear(r.start, { side: 'before', gap: 60, pred: mm => types[mm.col] === 'num' }) || mentionNear(r.end, { side: 'after', gap: 25, pred: mm => types[mm.col] === 'num' });
+    if (!col) { P.warnings.push(`${r.a}–${r.b}: எந்த column-னு புரியலை.`); continue; }
+    col.used = true; P.filters.push({ op: 'between', col: col.col, a: Math.min(r.a, r.b), b: Math.max(r.a, r.b) });
+  }
+  // ---- single numeric comparisons
+  const numRe = new RegExp('(?<![a-z0-9.])' + NUM, 'gu');
+  let nm; const nums = [];
+  while ((nm = numRe.exec(W.s))) nums.push({ v: numVal(nm[1], nm[2]), start: nm.index, end: nm.index + nm[0].length });
+  for (const n of nums) {
+    let col = mentionNear(n.start, { side: 'before', gap: 40, pred: mm => types[mm.col] === 'num' })
+           || mentionNear(n.start, { side: 'before', gap: 40 })
+           || mentionNear(n.end, { side: 'after', gap: 25 });
+    if (!col) { P.warnings.push(`"${n.v}" — எந்த column-க்குன்னு புரியலை (உதா: "Amount > ${n.v}").`); continue; }
+    col.used = true;
+    const a = Math.min(col.end, n.start), b = Math.min(W.s.length, n.end + 22);
+    const win = W.s.slice(a, b);
+    let op = 'eq';
+    if (findKw(win, K.gte).length) op = 'gte'; else if (findKw(win, K.lte).length) op = 'lte';
+    else if (findKw(win, K.gt).length) op = 'gt'; else if (findKw(win, K.lt).length) op = 'lt';
+    else if (findKw(win, K.neq).length) op = 'neq';
+    const sub = { s: win };
+    take(sub, [].concat(K.gte, K.lte, K.gt, K.lt, K.neq, ['=', '==', 'equals', 'equal to', 'is', 'ஆக']));
+    W.s = W.s.slice(0, a) + sub.s + W.s.slice(b);
+    blankOut(W, n.start, n.end);
+    P.filters.push({ op, col: col.col, value: types[col.col] === 'num' ? n.v : String(n.v) });
+  }
+  // ---- blank / not blank
+  for (const [words, op] of [[K.notblank, 'notblank'], [K.blank, 'blank']]) {
+    for (const x of take(W, words)) {
+      const col = mentionNear(x.start, { gap: 20 });
+      if (!col) { P.warnings.push('எந்த column காலியா இருக்கணும்னு சொல்லுங்க (உதா: "Phone blank").'); continue; }
+      col.used = true; P.filters.push({ op, col: col.col });
+    }
+  }
+
+  // ---- grouping
+  const JOIN = /^[\s,&]*(?:and|மற்றும்|உம்)?[\s,&]*$/u;
+  function chainGroup(mm, dirn) {        // "by City and Product" / "City, Product wise"
+    const idx = M.indexOf(mm), found = [];
+    for (let j = idx + dirn; j >= 0 && j < M.length; j += dirn) {
+      const a = dirn > 0 ? M[j - 1] : M[j], b = dirn > 0 ? M[j] : M[j + 1];
+      if (M[j].used || types[M[j].col] === 'num' || !JOIN.test(W.s.slice(a.end, b.start))) break;
+      M[j].used = true; found.push(M[j].col);
+    }
+    for (const c of (dirn > 0 ? found : found.reverse())) if (!P.group.includes(c)) { if (dirn > 0) P.group.push(c); else P.group.splice(P.group.indexOf(mm.col), 0, c); }
+  }
+  const mh = take(W, K.month), yh = take(W, K.year);
+  if (mh.length || yh.length) {
+    const near = mentionNear((mh[0] || yh[0]).start, { gap: 30, pred: mm => types[mm.col] === 'date' });
+    const col = near ? near.col : dateCols[0];
+    if (col === undefined) P.warnings.push('மாதம்/வருடம் வாரியா பிரிக்க தேதி column இல்லை.');
+    else { if (near) near.used = true; P.period = { kind: mh.length ? 'month' : 'year', col }; }
+  }
+  for (const x of take(W, K.byAfter)) {
+    const mm = mentionNear(x.end, { side: 'after', gap: 4 });
+    if (!mm) continue;
+    if (types[mm.col] === 'num') { P.rankCol = P.rankCol ?? mm.col; mm.used = true; mm.rank = true; continue; }
+    mm.used = true; if (!P.group.includes(mm.col)) P.group.push(mm.col);
+    chainGroup(mm, +1);
+  }
+  for (const x of take(W, K.byBefore)) {
+    const mm = mentionNear(x.start, { side: 'before', gap: 4 });
+    if (!mm) continue;
+    mm.used = true; if (!P.group.includes(mm.col)) P.group.push(mm.col);
+    chainGroup(mm, -1);
+  }
+  for (const x of take(W, K.unique)) {
+    const mm = mentionNear(x.end, { side: 'after', gap: 4 }) || mentionNear(x.start, { side: 'before', gap: 4 });
+    if (mm) { mm.used = true; P.unique = mm.col; } else P.warnings.push('எந்த column-ல unique வேணும்னு சொல்லுங்க.');
+  }
+  for (const a of ['sum', 'avg', 'count', 'max', 'min']) if (take(W, K[a]).length) P.aggs.push(a);
+
+  // ---- sort target
+  if (sortHint >= 0) {
+    const mm = mentionNear(sortHint, { side: 'after', gap: 6 });
+    if (mm) { P.sortCol = mm.col; mm.used = true; mm.sort = true; }
+    P.dir = P.dir || 'asc';
+  } else if (P.dir && dirPos >= 0) {
+    const mm = mentionNear(dirPos, { gap: 30, pred: m2 => !m2.used || m2.rank });
+    if (mm) { P.sortCol = mm.col; mm.used = true; mm.sort = true; }
+  }
+  if (rankHint >= 0) {
+    const mm = mentionNear(rankHint, { side: 'after', gap: 6, pred: m2 => types[m2.col] === 'num' });
+    if (mm && P.rankCol === null) { P.rankCol = mm.col; mm.used = true; mm.rank = true; }
+  }
+
+  // ---- show / select
+  const showHit = take(W, K.show).length > 0;
+  const free = M.filter(mm => !mm.used);
+  const freeNum = [...new Set(free.filter(mm => types[mm.col] === 'num').map(mm => mm.col))];
+  const freeTxt = [...new Set(free.filter(mm => types[mm.col] !== 'num').map(mm => mm.col))];
+  P.valueCols = freeNum.slice();
+  if (P.rankCol !== null && !P.valueCols.includes(P.rankCol)) P.valueCols.push(P.rankCol);
+
+  const grouping = P.group.length || P.period || P.unique !== null || P.aggs.length;
+  if (!grouping && P.limit && freeTxt.length && (P.valueCols.length || P.rankCol !== null)) { P.group.push(freeTxt.shift()); }
+  else if (!grouping && P.chart && freeTxt.length) { P.group.push(freeTxt.shift()); }
+  if (showHit || (!P.group.length && !P.period && P.unique === null && !P.aggs.length && !P.filters.length && P.sortCol === null && !P.limit && !P.chart && !P.dedupe)) {
+    const sel = [...new Set(free.map(mm => mm.col))];
+    if (sel.length) { P.select = sel; P.valueCols = []; }
+  }
+
+  P.empty = !P.filters.length && !P.group.length && !P.period && P.unique === null && !P.aggs.length && P.sortCol === null &&
+            !P.dir && !P.limit && !P.select && !P.chart && !P.dedupe && !P.reset;
+  return P;
+}
+
+/* ---------------------------- execute ------------------------------ */
+function cmpVals(a, b) {
+  const ea = isEmpty(a), eb = isEmpty(b);
+  if (ea || eb) return ea && eb ? 0 : ea ? 1 : -1;
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+}
+function cellISO(v) { return typeof v === 'string' ? toISODate(v) : null; }
+function testFilter(f, r) {
+  const v = f.col >= 0 ? r[f.col] : null;
+  switch (f.op) {
+    case 'in': return !isEmpty(v) && f.values.some(x => normVal(x) === normVal(v));
+    case 'notin': return isEmpty(v) || !f.values.some(x => normVal(x) === normVal(v));
+    case 'gt': return typeof v === 'number' && v > f.value;
+    case 'lt': return typeof v === 'number' && v < f.value;
+    case 'gte': return typeof v === 'number' && v >= f.value;
+    case 'lte': return typeof v === 'number' && v <= f.value;
+    case 'eq': return typeof f.value === 'number' ? v === f.value : normVal(v ?? '') === normVal(f.value);
+    case 'neq': return typeof f.value === 'number' ? v !== f.value : normVal(v ?? '') !== normVal(f.value);
+    case 'between': return typeof v === 'number' && v >= f.a && v <= f.b;
+    case 'blank': return isEmpty(v);
+    case 'notblank': return !isEmpty(v);
+    case 'contains': {
+      const t = f.value.toLowerCase();
+      if (f.col >= 0) return !isEmpty(v) && String(v).toLowerCase().includes(t);
+      return r.some(c => !isEmpty(c) && String(c).toLowerCase().includes(t));
+    }
+    case 'month': { const d = cellISO(v); if (!d) return false; const y = +d.slice(0, 4), m = +d.slice(5, 7); return f.months.some(x => x.m === m && (!x.y || x.y === y)); }
+    case 'dafter': { const d = cellISO(v); return !!d && d.slice(0, 10) >= f.a; }
+    case 'dbefore': { const d = cellISO(v); return !!d && d.slice(0, 10) <= f.a; }
+    case 'deq': { const d = cellISO(v); return !!d && d.slice(0, 10) === f.a; }
+    case 'dbetween': { const d = cellISO(v); const lo = f.a < f.b ? f.a : f.b, hi = f.a < f.b ? f.b : f.a; return !!d && d.slice(0, 10) >= lo && d.slice(0, 10) <= hi; }
+  }
+  return true;
+}
+function describeFilter(f, H) {
+  const c = f.col >= 0 ? H[f.col] : 'எல்லா columns';
+  const sym = { gt: '>', lt: '<', gte: '≥', lte: '≤', eq: '=', neq: '≠' };
+  switch (f.op) {
+    case 'in': return `${c} = ${f.values.join(' / ')}`;
+    case 'notin': return `${c} ≠ ${f.values.join(' / ')}`;
+    case 'between': return `${c}: ${fmtNum(f.a)} முதல் ${fmtNum(f.b)} வரை`;
+    case 'blank': return `${c} காலியானவை`;
+    case 'notblank': return `${c} காலி இல்லாதவை`;
+    case 'contains': return `${c}-ல் "${f.value}" உள்ளவை`;
+    case 'month': return `${c}: ${f.months.map(x => MON_EN[x.m - 1] + (x.y ? ' ' + x.y : '')).join(', ')} மாதம்`;
+    case 'dafter': return `${c} ≥ ${f.a}`;
+    case 'dbefore': return `${c} ≤ ${f.a}`;
+    case 'deq': return `${c} = ${f.a}`;
+    case 'dbetween': return `${c}: ${f.a} முதல் ${f.b} வரை`;
+    default: return `${c} ${sym[f.op]} ${typeof f.value === 'number' ? fmtNum(f.value) : f.value}`;
+  }
+}
+function execute(P, T) {
+  const H = T.headers, steps = [], warnings = P.warnings.slice();
+  let rows = T.rows;
+  for (const f of P.filters) { rows = rows.filter(r => testFilter(f, r)); steps.push('Filter: ' + describeFilter(f, H)); }
+  if (P.dedupe) {
+    const seen = new Set(), before = rows.length;
+    rows = rows.filter(r => { const k = JSON.stringify(r); if (seen.has(k)) return false; seen.add(k); return true; });
+    steps.push(`நகல் rows நீக்கம்: ${before - rows.length}`);
+  }
+  let out = { name: T.name, headers: H.slice(), rows, types: T.types.slice() };
+  let mapCol = i => i;
+
+  // aggregation
+  let groupCols = P.group.slice(), aggs = P.aggs.slice(), valueCols = (P.valueCols || []).slice();
+  if (P.unique !== null) { groupCols = [P.unique]; if (!aggs.length) aggs = ['count']; }
+  const grouping = groupCols.length || P.period || aggs.length;
+  if (grouping) {
+    valueCols = valueCols.filter(c => !groupCols.includes(c));
+    if (!aggs.length) aggs = valueCols.length ? ['sum'] : ['count'];
+    if (aggs.some(a => a !== 'count') && !valueCols.length) {
+      valueCols = T.types.map((t, i) => t === 'num' && !groupCols.includes(i) && !isIdLike(H[i]) ? i : -1).filter(i => i >= 0).slice(0, 6);
+      if (valueCols.length) warnings.push(`எந்த column-க்குன்னு சொல்லலை — எண் column-கள் எல்லாத்துக்கும் (${valueCols.map(i => H[i]).join(', ')}) போட்டிருக்கேன்.`);
+      else { aggs = ['count']; warnings.push('எண் column இல்லாததால எண்ணிக்கை (count) மட்டும் காட்டுறேன்.'); }
+    }
+    const keyCols = [];
+    if (P.period) keyCols.push({ name: P.period.kind === 'month' ? 'Month' : 'Year', get: r => { const d = cellISO(r[P.period.col]); return d ? d.slice(0, P.period.kind === 'month' ? 7 : 4) : '(தேதி இல்லை)'; } });
+    for (const g of groupCols) keyCols.push({ name: H[g], get: r => isEmpty(r[g]) ? '(காலி)' : r[g], src: g });
+    const aggCols = [];
+    if (aggs.includes('count')) aggCols.push({ name: 'Count', type: 'count' });
+    for (const a of aggs) if (a !== 'count') for (const c of valueCols) aggCols.push({ name: `${AGG_LABEL[a]} ${H[c]}`, type: a, col: c });
+    const groups = new Map();
+    for (const r of rows) {
+      const kv = keyCols.map(k => k.get(r)); const key = JSON.stringify(kv.map(v => typeof v === 'string' ? v.toLowerCase().trim() : v));
+      let g = groups.get(key);
+      if (!g) { g = { kv, acc: aggCols.map(() => ({ s: 0, n: 0, mx: -Infinity, mn: Infinity })), count: 0 }; groups.set(key, g); }
+      g.count++;
+      aggCols.forEach((a, i) => {
+        if (a.type === 'count') return;
+        const v = r[a.col]; if (typeof v !== 'number') return;
+        const A = g.acc[i]; A.s += v; A.n++; if (v > A.mx) A.mx = v; if (v < A.mn) A.mn = v;
+      });
+    }
+    const newRows = [];
+    for (const g of groups.values()) {
+      newRows.push(g.kv.concat(aggCols.map((a, i) => {
+        const A = g.acc[i];
+        if (a.type === 'count') return g.count;
+        if (!A.n) return null;
+        if (a.type === 'sum') return Math.round(A.s * 100) / 100;
+        if (a.type === 'avg') return Math.round(A.s / A.n * 100) / 100;
+        if (a.type === 'max') return A.mx;
+        return A.mn;
+      })));
+    }
+    const nk = keyCols.length;
+    newRows.sort((x, y) => { for (let i = 0; i < nk; i++) { const c = cmpVals(x[i], y[i]); if (c) return c; } return 0; });
+    out = { name: T.name, headers: keyCols.map(k => k.name).concat(aggCols.map(a => a.name)), rows: newRows,
+            types: keyCols.map(k => k.src !== undefined && T.types[k.src] === 'date' ? 'date' : 'text').concat(aggCols.map(() => 'num')) };
+    mapCol = i => {
+      const gi = groupCols.indexOf(i); if (gi >= 0) return gi + (P.period ? 1 : 0);
+      const ai = aggCols.findIndex(a => a.col === i); return ai >= 0 ? nk + ai : -1;
+    };
+    out.firstAgg = nk;
+    if (P.period) steps.push(`${P.period.kind === 'month' ? 'மாதம்' : 'வருடம்'} வாரியாக (${H[P.period.col]})`);
+    if (groupCols.length) steps.push(`${groupCols.map(g => H[g]).join(' + ')} வாரியாக`);
+    steps.push(aggs.map(a => AGG_TA[a] + (a === 'count' ? '' : ': ' + valueCols.map(c => H[c]).join(', '))).join(' | '));
+  }
+
+  // sort / limit
+  let sortIdx = P.sortCol !== null ? mapCol(P.sortCol) : -1, dir = P.dir;
+  if (P.limit) {
+    let rIdx = P.rankCol !== null ? mapCol(P.rankCol) : -1;
+    if (rIdx < 0) rIdx = sortIdx;
+    if (rIdx < 0 && out.firstAgg !== undefined) rIdx = out.firstAgg;
+    if (rIdx < 0 && valueCols.length) rIdx = mapCol(valueCols[0]);
+    if (rIdx >= 0) { sortIdx = rIdx; dir = P.dir || (P.limit.from === 'top' ? 'desc' : 'asc'); }
+  } else if (sortIdx < 0 && P.dir) {
+    sortIdx = out.firstAgg !== undefined ? out.firstAgg : out.types.findIndex(t => t === 'num');
+  }
+  if (sortIdx >= 0) {
+    const sgn = dir === 'desc' ? -1 : 1;
+    out.rows = out.rows.slice().sort((a, b) => {
+      const ea = isEmpty(a[sortIdx]), eb = isEmpty(b[sortIdx]);
+      if (ea || eb) return ea && eb ? 0 : ea ? 1 : -1;
+      return sgn * cmpVals(a[sortIdx], b[sortIdx]);
+    });
+    steps.push(`வரிசை: ${out.headers[sortIdx]} (${dir === 'desc' ? 'அதிகம் → குறைவு' : 'குறைவு → அதிகம்'})`);
+  }
+  if (P.limit) {
+    out.rows = P.limit.from === 'top' ? out.rows.slice(0, P.limit.n) : (sortIdx >= 0 ? out.rows.slice(0, P.limit.n) : out.rows.slice(-P.limit.n));
+    steps.push(`${P.limit.from === 'top' ? 'முதல்' : 'கடைசி'} ${P.limit.n}`);
+  }
+  if (P.select) {
+    const idx = P.select.map(mapCol).filter(i => i >= 0);
+    if (idx.length) {
+      out = { name: out.name, headers: idx.map(i => out.headers[i]), rows: out.rows.map(r => idx.map(i => r[i])), types: idx.map(i => out.types[i]) };
+      steps.push('Columns: ' + out.headers.join(', '));
+    }
+  }
+  if (P.chart) steps.push(`Chart: ${P.chart}`);
+  return { table: out, steps, warnings };
+}
+
+/* --------------------------- XLSX write ---------------------------- */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  const now = new Date();
+  const dosT = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosD = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  for (const f of files) {
+    const name = enc.encode(f.name), data = typeof f.data === 'string' ? enc.encode(f.data) : f.data, crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, dosT, true); lh.setUint16(12, dosD, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true);
+    lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint16(12, dosT, true); ch.setUint16(14, dosD, true); ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    off += 30 + name.length + data.length;
+  }
+  const csize = central.reduce((s, p) => s + p.length, 0);
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+  e.setUint32(12, csize, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+const xesc = s => String(s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function colName(i) { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+function tableToXlsx(T, sheetName) {
+  const sn = xesc(String(sheetName || 'Result').replace(/[\\/?*[\]:]/g, ' ').slice(0, 31) || 'Result');
+  const widths = T.headers.map((h, i) => Math.min(60, Math.max(String(h).length, ...T.rows.slice(0, 500).map(r => isEmpty(r[i]) ? 0 : String(typeof r[i] === 'number' ? fmtNum(r[i]) : r[i]).length)) + 2));
+  const cell = (v, ref, hdr) => {
+    if (isEmpty(v)) return '';
+    if (typeof v === 'number' && isFinite(v)) return `<c r="${ref}"${hdr ? ' s="1"' : ''}><v>${v}</v></c>`;
+    return `<c r="${ref}" t="inlineStr"${hdr ? ' s="1"' : ''}><is><t xml:space="preserve">${xesc(v)}</t></is></c>`;
+  };
+  let sd = `<row r="1">${T.headers.map((h, i) => cell(String(h), colName(i) + 1, true)).join('')}</row>`;
+  T.rows.forEach((r, ri) => { sd += `<row r="${ri + 2}">${r.map((v, i) => cell(v, colName(i) + (ri + 2))).join('')}</row>`; });
+  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${sd}</sheetData>${T.headers.length ? `<autoFilter ref="A1:${colName(T.headers.length - 1)}${T.rows.length + 1}"/>` : ''}</worksheet>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.##"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F6FEB"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  return zipStore([
+    { name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>` },
+    { name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: 'xl/workbook.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${sn}" sheetId="1" r:id="rId1"/></sheets>${T.headers.length ? `<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'${sn.replace(/'/g, "''")}'!$A$1:$${colName(T.headers.length - 1)}$${T.rows.length + 1}</definedName></definedNames>` : ''}</workbook>` },
+    { name: 'xl/_rels/workbook.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name: 'xl/styles.xml', data: styles },
+    { name: 'xl/worksheets/sheet1.xml', data: sheet },
+  ]);
+}
+function tableToCSV(T) {
+  const q = v => { if (isEmpty(v)) return ''; const s = String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  return '﻿' + [T.headers.map(q).join(',')].concat(T.rows.map(r => r.map(q).join(','))).join('\r\n');
+}
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+/* ----------------------------- chart ------------------------------- */
+const COLORS = ['#1f6feb', '#0f9d58', '#f79009', '#d92d20', '#7a5af8', '#0e9384', '#dd2590', '#667085', '#4e5ba6', '#a15c07', '#079455', '#c11574'];
+function drawChart(T, type) {
+  const cv = $('#chart'), msg = $('#chartMsg2');
+  const li = T.types.findIndex(t => t !== 'num');
+  const nums = T.types.map((t, i) => t === 'num' ? i : -1).filter(i => i >= 0 && i !== li);
+  if (!T.rows.length || !nums.length) {
+    cv.classList.add('hidden'); msg.classList.remove('hidden');
+    msg.textContent = 'Chart போட எண் column வேணும். உதா: "City வாரியா Amount chart" அல்லது "City wise count chart".';
+    return false;
+  }
+  cv.classList.remove('hidden'); msg.classList.add('hidden');
+  const dpr = window.devicePixelRatio || 1, Wd = Math.max(420, cv.parentElement.clientWidth || 800), Hd = 440;
+  cv.width = Wd * dpr; cv.height = Hd * dpr; cv.style.width = Wd + 'px'; cv.style.height = Hd + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, Wd, Hd);
+  ctx.font = '12px "Nirmala UI","Noto Sans Tamil",sans-serif'; ctx.textBaseline = 'middle';
+  const label = (r, i) => li >= 0 ? (isEmpty(r[li]) ? '(காலி)' : String(r[li])) : String(i + 1);
+  const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+  let rows = T.rows, note = '';
+
+  if (type === 'pie') {
+    const vi = nums[0];
+    let items = rows.map((r, i) => ({ l: label(r, i), v: typeof r[vi] === 'number' ? Math.max(0, r[vi]) : 0 })).filter(x => x.v > 0).sort((a, b) => b.v - a.v);
+    if (items.length > 11) { const rest = items.slice(11).reduce((s, x) => s + x.v, 0); items = items.slice(0, 11).concat([{ l: 'மற்றவை', v: rest }]); }
+    const total = items.reduce((s, x) => s + x.v, 0) || 1;
+    const cx = Math.min(Wd * 0.32, 230), cy = Hd / 2 + 10, R = Math.min(cx - 20, Hd / 2 - 40);
+    let a0 = -Math.PI / 2;
+    items.forEach((x, i) => {
+      const a1 = a0 + x.v / total * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, a0, a1); ctx.closePath(); ctx.fillStyle = COLORS[i % COLORS.length]; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+      const pct = x.v / total * 100;
+      if (pct >= 4) { const am = (a0 + a1) / 2; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = 'bold 12px sans-serif'; ctx.fillText(pct.toFixed(0) + '%', cx + Math.cos(am) * R * 0.66, cy + Math.sin(am) * R * 0.66); }
+      a0 = a1;
+    });
+    ctx.font = '13px "Nirmala UI","Noto Sans Tamil",sans-serif'; ctx.textAlign = 'left';
+    const lx = cx + R + 40; let ly = cy - items.length * 13;
+    items.forEach((x, i) => { ctx.fillStyle = COLORS[i % COLORS.length]; ctx.fillRect(lx, ly - 6, 12, 12); ctx.fillStyle = '#344054'; ctx.fillText(`${trunc(x.l, 28)} — ${compact(x.v)} (${(x.v / total * 100).toFixed(1)}%)`, lx + 18, ly); ly += 26; });
+    ctx.font = 'bold 14px "Nirmala UI",sans-serif'; ctx.fillStyle = '#1d2433'; ctx.fillText(T.headers[vi], 14, 18);
+    return true;
+  }
+
+  const series = nums.slice(0, 3);
+  const cap = type === 'line' ? 300 : 40;
+  if (rows.length > cap) { rows = rows.slice(0, cap); note = `(முதல் ${cap} மட்டும் காட்டப்படுது)`; }
+  let max = 0, min = 0;
+  for (const r of rows) for (const s of series) if (typeof r[s] === 'number') { max = Math.max(max, r[s]); min = Math.min(min, r[s]); }
+  if (max === min) max = min + 1;
+  const step = (() => { const raw = (max - min) / 5, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; })();
+  const yMax = Math.ceil(max / step) * step, yMin = Math.floor(min / step) * step;
+  const L = 70, Rm = 20, Tp = 44;
+  const longest = Math.max(...rows.map((r, i) => trunc(label(r, i), 16).length));
+  const rotate = rows.length > 8 || longest * 7 * rows.length > Wd - L - Rm;
+  const B = rotate ? 30 + Math.min(16, longest) * 5.5 : 46;
+  const pw = Wd - L - Rm, ph = Hd - Tp - B;
+  const y = v => Tp + ph - (v - yMin) / (yMax - yMin) * ph;
+  ctx.strokeStyle = '#eaecf0'; ctx.fillStyle = '#667085'; ctx.textAlign = 'right'; ctx.lineWidth = 1;
+  for (let v = yMin; v <= yMax + step / 2; v += step) { ctx.beginPath(); ctx.moveTo(L, y(v)); ctx.lineTo(L + pw, y(v)); ctx.stroke(); ctx.fillText(compact(v), L - 8, y(v)); }
+  ctx.strokeStyle = '#98a2b3'; ctx.beginPath(); ctx.moveTo(L, y(Math.max(yMin, 0))); ctx.lineTo(L + pw, y(Math.max(yMin, 0))); ctx.stroke();
+  const n = rows.length, slot = pw / n;
+  rows.forEach((r, i) => {
+    const xc = L + slot * (i + 0.5);
+    if (n <= 60 || i % Math.ceil(n / 60) === 0) {
+      ctx.save(); ctx.fillStyle = '#475467';
+      if (rotate) { ctx.translate(xc, Tp + ph + 8); ctx.rotate(-Math.PI / 4); ctx.textAlign = 'right'; ctx.fillText(trunc(label(r, i), 16), 0, 0); }
+      else { ctx.textAlign = 'center'; ctx.fillText(trunc(label(r, i), 16), xc, Tp + ph + 16); }
+      ctx.restore();
+    }
+  });
+  if (type === 'line') {
+    series.forEach((s, si) => {
+      ctx.strokeStyle = COLORS[si]; ctx.lineWidth = 2.5; ctx.beginPath(); let started = false;
+      rows.forEach((r, i) => { if (typeof r[s] !== 'number') return; const xx = L + slot * (i + 0.5), yy = y(r[s]); if (!started) { ctx.moveTo(xx, yy); started = true; } else ctx.lineTo(xx, yy); });
+      ctx.stroke();
+      if (n <= 40) rows.forEach((r, i) => { if (typeof r[s] !== 'number') return; ctx.beginPath(); ctx.arc(L + slot * (i + 0.5), y(r[s]), 3.5, 0, 7); ctx.fillStyle = COLORS[si]; ctx.fill(); });
+    });
+  } else {
+    const bw = Math.min(56, slot * 0.78 / series.length);
+    rows.forEach((r, i) => {
+      series.forEach((s, si) => {
+        const v = r[s]; if (typeof v !== 'number') return;
+        const x0 = L + slot * (i + 0.5) - bw * series.length / 2 + si * bw;
+        const y0 = y(Math.max(v, 0)), y1 = y(Math.min(v, 0));
+        ctx.fillStyle = COLORS[si]; ctx.fillRect(x0 + 1, y0, bw - 2, Math.max(1, y1 - y0));
+        if (n * series.length <= 24) { ctx.fillStyle = '#344054'; ctx.textAlign = 'center'; ctx.font = '11px sans-serif'; ctx.fillText(compact(v), x0 + bw / 2, y0 - 9); ctx.font = '12px "Nirmala UI",sans-serif'; }
+      });
+    });
+  }
+  // legend + title
+  ctx.textAlign = 'left'; let lx = L;
+  series.forEach((s, si) => { ctx.fillStyle = COLORS[si]; ctx.fillRect(lx, 14, 12, 12); ctx.fillStyle = '#1d2433'; ctx.font = 'bold 13px "Nirmala UI",sans-serif'; ctx.fillText(T.headers[s], lx + 18, 20); lx += ctx.measureText(T.headers[s]).width + 40; });
+  if (note) { ctx.fillStyle = '#b54708'; ctx.font = '12px "Nirmala UI",sans-serif'; ctx.fillText(note, lx, 20); }
+  return true;
+}
+
+/* ------------------------------ UI -------------------------------- */
+function setStatus(msg, err) { const s = $('#status'); s.textContent = msg || ''; s.className = err ? 'err' : ''; }
+function renderTable(T) {
+  const wrap = $('#tableWrap');
+  if (!T.headers.length) { wrap.innerHTML = '<div id="chartMsg">இந்த sheet-ல டேட்டா இல்லை.</div>'; return; }
+  const MAXR = 1000, num = T.types.map(t => t === 'num'), idc = T.headers.map(isIdLike);
+  let html = '<table><thead><tr><th class="rowno">#</th>' + T.headers.map((h, i) => `<th class="${num[i] ? 'n' : ''}">${xesc(h)}</th>`).join('') + '</tr></thead><tbody>';
+  const show = T.rows.slice(0, MAXR);
+  for (let r = 0; r < show.length; r++) {
+    html += `<tr><td class="rowno">${r + 1}</td>` + show[r].map((v, i) => `<td class="${num[i] ? 'n' : ''}">${isEmpty(v) ? '' : xesc(typeof v === 'number' && !idc[i] ? fmtNum(v) : v)}</td>`).join('') + '</tr>';
+  }
+  html += '</tbody>';
+  if (num.some(Boolean) && T.rows.length > 1) {
+    html += '<tfoot><tr><td class="rowno"></td>' + T.headers.map((h, i) => {
+      if (!num[i] || isIdLike(h) || /^(average|max|min)\b/i.test(h)) return i === 0 ? '<td>மொத்தம்</td>' : '<td></td>';
+      let s = 0; for (const r of T.rows) if (typeof r[i] === 'number') s += r[i];
+      return `<td class="n">${fmtNum(Math.round(s * 100) / 100)}</td>`;
+    }).join('') + '</tr></tfoot>';
+  }
+  html += '</table>';
+  wrap.innerHTML = html;
+  $('#meta').textContent = `${T.rows.length.toLocaleString('en-IN')} rows × ${T.headers.length} columns` +
+    (state.original && T !== state.original ? `  (மொத்தம் ${state.original.rows.length.toLocaleString('en-IN')} rows-ல் இருந்து)` : '') +
+    (T.rows.length > MAXR ? ` — முதல் ${MAXR} rows திரையில்; டவுன்லோட்டில் எல்லாமே இருக்கும்` : '');
+}
+function setTab(name) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  $('#tabTable').classList.toggle('hidden', name !== 'table');
+  $('#tabChart').classList.toggle('hidden', name !== 'chart');
+  $('#dlp').classList.toggle('hidden', name !== 'chart');
+  if (name === 'chart' && state.current) drawChart(state.current, $('#ctype').value);
+}
+function renderAll(res) {
+  const T = state.current;
+  renderTable(T);
+  const und = $('#understood');
+  if (res) {
+    und.style.display = 'block';
+    $('#steps').innerHTML = res.steps.map(s => `<span class="chip step">${xesc(s)}</span>`).join('') || '<span class="chip step">மாற்றம் இல்லை</span>';
+    $('#warns').innerHTML = res.warnings.map(w => `<div class="warn">⚠ ${xesc(w)}</div>`).join('');
+  } else und.style.display = 'none';
+  ['#dlx', '#dlc', '#dlp'].forEach(id => $(id).disabled = !T);
+  $('#undo').disabled = !state.history.length;
+  $('#reset').disabled = !state.history.length;
+  $('#hist').innerHTML = state.history.length
+    ? state.history.map((h, i) => `<div>${i + 1}. ${xesc(h.cmd)} <span style="color:var(--muted)">→ ${h.table.rows.length} rows</span></div>`).join('')
+    : '<span style="color:var(--muted)">இன்னும் எதுவும் இல்லை.</span>';
+  if (res && res.chart) { $('#ctype').value = res.chart; setTab('chart'); }
+  else if (!$('#tabChart').classList.contains('hidden')) drawChart(T, $('#ctype').value);
+}
+function renderColumns(T) {
+  const ICON = { num: '123', date: '📅', text: 'abc' };
+  $('#cols').innerHTML = T.headers.map((h, i) => `<span class="chip" data-col="${xesc(h)}">${xesc(h)}<span class="t">${ICON[T.types[i]]}</span></span>`).join('');
+  $('#colsWrap').classList.toggle('hidden', !T.headers.length);
+  // dynamic examples
+  const H = T.headers, ty = T.types;
+  const numIdx = ty.map((t, i) => t === 'num' && !isIdLike(H[i]) ? i : -1).filter(i => i >= 0);
+  const nc = numIdx.find(i => /amount|value|total|sales|price|revenue|cost|net|தொகை/i.test(H[i])) ?? (numIdx.length ? numIdx[numIdx.length - 1] : -1), dc = ty.indexOf('date');
+  let tc = -1, bestScore = -1;
+  ty.forEach((t, i) => { if (t !== 'text') return; const d = distinct(T, i).size; const sc = d >= 2 && d <= 60 ? 100 - d : d > 60 ? 1 : 0; if (sc > bestScore) { bestScore = sc; tc = i; } });
+  const ex = [];
+  if (tc >= 0 && nc >= 0) ex.push(`${H[tc]} வாரியா ${H[nc]} total`);
+  if (tc >= 0) { const top = [...distinct(T, tc).values()].sort((a, b) => b.n - a.n)[0]; if (top) ex.push(`${top.orig} மட்டும்`); }
+  if (nc >= 0) {
+    const vals = T.rows.map(r => r[nc]).filter(v => typeof v === 'number').sort((a, b) => a - b);
+    if (vals.length) { let med = vals[Math.floor(vals.length / 2)]; const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(med) || 1)))); med = Math.round(med / p) * p; ex.push(`${H[nc]} > ${med}`); }
+    ex.push(`top 10 ${H[nc]}`);
+    ex.push(`${H[nc]} high to low`);
+  }
+  if (tc >= 0 && nc >= 0) ex.push(`top 5 ${H[tc]} by ${H[nc]}`);
+  if (dc >= 0 && nc >= 0) ex.push(`month wise ${H[nc]} total line chart`);
+  if (tc >= 0 && nc >= 0) ex.push(`${H[tc]} wise ${H[nc]} chart`);
+  if (tc >= 0) ex.push(`${H[tc]} wise count pie chart`);
+  if (tc >= 0) ex.push(`unique ${H[tc]}`);
+  ex.push('remove duplicates');
+  $('#examples').innerHTML = ex.map(e => `<span class="chip ex">${xesc(e)}</span>`).join('');
+  $('#exWrap').classList.remove('hidden');
+}
+async function loadSheet(i) {
+  setStatus('Sheet ஏற்றப்படுது…');
+  const T = await state.sheets[i].load();
+  state.original = T; state.current = T; state.history = [];
+  renderColumns(T); renderAll(null);
+  setStatus(`✅ "${T.name}" ஏற்றப்பட்டது — ${T.rows.length.toLocaleString('en-IN')} rows. இப்போ கமாண்ட் கொடுங்க.`);
+}
+async function handleFile(file) {
+  if (!file) return;
+  try {
+    setStatus('ஃபைல் படிக்கப்படுது…');
+    state.fileName = file.name.replace(/\.[^.]+$/, '');
+    const buf = await file.arrayBuffer();
+    if (/\.(csv|txt)$/i.test(file.name)) {
+      const T = buildTable(parseCSV(new TextDecoder('utf-8').decode(buf)), 'CSV');
+      state.sheets = [{ name: 'CSV', load: async () => T }];
+    } else if (/\.xls$/i.test(file.name)) {
+      throw new Error('பழைய .xls ஃபைல் ஆதரிக்கப்படலை. Excel-ல திறந்து "Save As → Excel Workbook (.xlsx)" பண்ணுங்க.');
+    } else {
+      state.sheets = await readXlsx(buf);
+      if (!state.sheets.length) throw new Error('Sheet எதுவும் கிடைக்கலை.');
+    }
+    $('#fileInfo').textContent = `📄 ${file.name}  (${(file.size / 1024).toFixed(0)} KB)`;
+    $('#sheet').innerHTML = state.sheets.map((s, i) => `<option value="${i}">${xesc(s.name)}</option>`).join('');
+    $('#sheetWrap').classList.toggle('hidden', state.sheets.length < 2);
+    await loadSheet(0);
+  } catch (e) { console.error(e); setStatus('❌ ' + (e.message || e), true); }
+}
+function runCommand(cmdText) {
+  const cmd = (cmdText ?? $('#cmd').value).trim();
+  if (!cmd) return;
+  if (!state.original) { setStatus('முதல்ல ஒரு Excel ஃபைலை ஏற்றுங்க.', true); return; }
+  try {
+    const chain = $('#chain').checked;
+    let base = chain && state.current ? state.current : state.original;
+    const P = parseCommand(cmd, base);
+    if (P.undo) { undo(); return; }
+    if (P.reset) base = state.original;
+    if (P.reset && P.empty === false && !P.filters.length && !P.group.length && !P.period && P.unique === null && !P.aggs.length && P.sortCol === null && !P.dir && !P.limit && !P.select && !P.chart && !P.dedupe) { resetAll(); return; }
+    if (P.empty) {
+      setStatus(`🤔 "${cmd}" — புரியலை. Column பெயரை சேர்த்து சொல்லுங்க (உதா: "${base.headers[0] || 'City'} வாரியா total"), அல்லது கீழே உள்ள உதாரணங்களை கிளிக் பண்ணுங்க.`, true);
+      if (P.warnings.length) $('#warns').innerHTML = P.warnings.map(w => `<div class="warn">⚠ ${xesc(w)}</div>`).join('');
+      return;
+    }
+    const res = execute(P, base);
+    res.chart = P.chart;
+    state.history.push({ cmd, table: res.table, res });
+    state.current = res.table;
+    renderAll(res);
+    setStatus(res.table.rows.length ? `✅ முடிஞ்சது — ${res.table.rows.length.toLocaleString('en-IN')} rows.` : '⚠ இந்த நிபந்தனைக்கு rows எதுவும் கிடைக்கலை. Undo பண்ணி வேற மாதிரி ட்ரை பண்ணுங்க.', !res.table.rows.length);
+    $('#cmd').select();
+  } catch (e) { console.error(e); setStatus('❌ பிழை: ' + (e.message || e), true); }
+}
+function undo() {
+  if (!state.history.length) return;
+  state.history.pop();
+  const last = state.history[state.history.length - 1];
+  state.current = last ? last.table : state.original;
+  renderAll(last ? last.res : null);
+  setStatus('↶ முந்தைய நிலைக்கு திரும்பியாச்சு.');
+}
+function resetAll() {
+  state.history = []; state.current = state.original; renderAll(null); setStatus('⟲ Original டேட்டா காட்டப்படுது.');
+}
+
+/* ---- voice ---- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false;
+function toggleMic() {
+  if (!SR) { setStatus('இந்த பிரவுசரில் வாய்ஸ் வசதி இல்லை. Google Chrome அல்லது Microsoft Edge பயன்படுத்துங்க.', true); return; }
+  if (listening) { rec && rec.stop(); return; }
+  rec = new SR(); rec.lang = $('#lang').value; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  let finalText = '';
+  rec.onstart = () => { listening = true; $('#mic').classList.add('listening'); setStatus('🎤 கேட்டுக்கிட்டு இருக்கேன்… பேசுங்க'); };
+  rec.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) finalText += t; else interim += t; }
+    $('#cmd').value = (finalText + ' ' + interim).trim();
+  };
+  rec.onerror = e => {
+    const m = { 'not-allowed': 'மைக் அனுமதி மறுக்கப்பட்டது. Address bar-ல 🔒/மைக் ஐகான் கிளிக் பண்ணி Allow கொடுங்க.', 'network': 'வாய்ஸுக்கு இன்டர்நெட் தேவை (Chrome-ன் speech சேவை). இன்டர்நெட் இல்லைன்னா டைப் பண்ணுங்க.', 'no-speech': 'எதுவும் கேட்கலை. மறுபடி ட்ரை பண்ணுங்க.', 'audio-capture': 'மைக் கண்டுபிடிக்க முடியலை.' };
+    setStatus('🎤 ' + (m[e.error] || e.error), true);
+  };
+  rec.onend = () => { listening = false; $('#mic').classList.remove('listening'); if (finalText.trim()) { $('#cmd').value = finalText.trim(); runCommand(finalText.trim()); } };
+  try { rec.start(); } catch (e) { setStatus('🎤 ' + e.message, true); }
+}
+
+/* ---- wire up ---- */
+const drop = $('#drop'), fileIn = $('#file');
+drop.addEventListener('click', () => fileIn.click());
+fileIn.addEventListener('change', () => { handleFile(fileIn.files[0]); fileIn.value = ''; });
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+$('#sheet').addEventListener('change', e => loadSheet(+e.target.value));
+$('#run').addEventListener('click', () => runCommand());
+$('#cmd').addEventListener('keydown', e => { if (e.key === 'Enter') runCommand(); });
+$('#mic').addEventListener('click', toggleMic);
+if (!SR) $('#mic').title = 'வாய்ஸ் வசதிக்கு Chrome / Edge தேவை';
+$('#undo').addEventListener('click', undo);
+$('#reset').addEventListener('click', resetAll);
+$('#cols').addEventListener('click', e => { const c = e.target.closest('[data-col]'); if (!c) return; const inp = $('#cmd'); inp.value = (inp.value.trim() + ' ' + c.dataset.col + ' ').trimStart(); inp.focus(); });
+$('#examples').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; $('#cmd').value = c.textContent; runCommand(c.textContent); });
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+$('#ctype').addEventListener('change', () => state.current && drawChart(state.current, $('#ctype').value));
+window.addEventListener('resize', () => { if (!$('#tabChart').classList.contains('hidden') && state.current) drawChart(state.current, $('#ctype').value); });
+$('#dlx').addEventListener('click', () => state.current && download(tableToXlsx(state.current, state.current.name), `${state.fileName || 'result'}_output.xlsx`));
+$('#dlc').addEventListener('click', () => state.current && download(new Blob([tableToCSV(state.current)], { type: 'text/csv;charset=utf-8' }), `${state.fileName || 'result'}_output.csv`));
+$('#dlp').addEventListener('click', () => { $('#chart').toBlob(b => b && download(b, `${state.fileName || 'chart'}_chart.png`)); });
+
+// offline support (installed app / website)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+// expose for testing
+window.__app = { parseCommand, execute, buildTable, readXlsx, tableToXlsx, state, runCommand, handleFile };
+</script>
+</body>
+</html>

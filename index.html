@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ta">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -73,51 +73,51 @@ label.chk{font-size:13px;color:#475467;display:flex;gap:6px;align-items:center}
 <body>
 <header>
   <img src="icon-192.png" alt="" width="34" height="34" style="border-radius:8px"><h1>Tech Solutions Data Assistant</h1>
-  <span class="sub">Excel அப்லோட் பண்ணுங்க → கமாண்ட் டைப் பண்ணுங்க அல்லது பேசுங்க → அவுட்புட் ரெடி</span>
-  <span class="offline">🔒 உங்க டேட்டா உங்க கம்ப்யூட்டரை விட்டு வெளியே போகாது</span>
+  <span class="sub">Upload an Excel or CSV file → type or speak a command → get the result</span>
+  <span class="offline">🔒 Your data never leaves your computer</span>
 </header>
 
 <main>
   <!-- Upload -->
   <section class="card">
-    <h2>1. Excel / CSV ஃபைல்</h2>
+    <h2>1. Excel / CSV file</h2>
     <div id="drop">
       <div style="font-size:30px">📁</div>
-      <div><b>இங்கே கிளிக் பண்ணுங்க</b> அல்லது ஃபைலை இழுத்து விடுங்க (.xlsx, .xlsm, .csv)</div>
+      <div><b>Click here</b> or drag and drop a file (.xlsx, .xlsm, .csv)</div>
       <input type="file" id="file" accept=".xlsx,.xlsm,.csv,.txt" class="hidden">
     </div>
     <div class="row" style="margin-top:10px">
-      <span id="fileInfo">இன்னும் ஃபைல் எதுவும் ஏற்றப்படவில்லை.</span>
+      <span id="fileInfo">No file loaded yet.</span>
       <span id="sheetWrap" class="hidden">Sheet: <select id="sheet"></select></span>
     </div>
     <div id="colsWrap" class="hidden" style="margin-top:10px">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Columns (கிளிக் பண்ணா கமாண்டில் சேரும்):</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Columns (click to add to the command):</div>
       <div class="chips" id="cols"></div>
     </div>
   </section>
 
   <!-- Command -->
   <section class="card">
-    <h2>2. கமாண்ட்</h2>
+    <h2>2. Command</h2>
     <div class="row">
-      <input type="text" id="cmd" placeholder="உதா: City வாரியா Amount total  /  Chennai மட்டும்  /  top 10 Amount" autocomplete="off">
-      <button id="mic" title="பேசி கமாண்ட் கொடுக்க">🎤</button>
-      <select id="lang" title="வாய்ஸ் மொழி">
-        <option value="ta-IN">தமிழ்</option>
-        <option value="en-IN">English</option>
+      <input type="text" id="cmd" placeholder="e.g. City wise Amount total  /  only Chennai  /  top 10 Amount" autocomplete="off">
+      <button id="mic" title="Speak a command">🎤</button>
+      <select id="lang" title="Voice language">
+        <option value="ta-IN">Voice: Tamil</option>
+        <option value="en-IN">Voice: English</option>
       </select>
       <button class="primary" id="run">▶ Run</button>
     </div>
     <div class="row" style="margin-top:10px;justify-content:space-between">
-      <label class="chk"><input type="checkbox" id="chain" checked> முந்தைய முடிவின் மேல் தொடரவும்</label>
+      <label class="chk"><input type="checkbox" id="chain" checked> Continue on the previous result</label>
       <div class="row">
         <button id="undo" disabled>↶ Undo</button>
-        <button id="reset" disabled>⟲ Original டேட்டா</button>
+        <button id="reset" disabled>⟲ Original data</button>
       </div>
     </div>
     <div id="status"></div>
     <div id="exWrap" class="hidden" style="margin-top:10px">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">உதாரண கமாண்ட்கள் (கிளிக் பண்ணி ட்ரை பண்ணுங்க):</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Example commands (click to try):</div>
       <div class="chips" id="examples"></div>
     </div>
   </section>
@@ -125,9 +125,9 @@ label.chk{font-size:13px;color:#475467;display:flex;gap:6px;align-items:center}
   <div class="grid2">
     <!-- Result -->
     <section class="card">
-      <h2>3. அவுட்புட்</h2>
+      <h2>3. Result</h2>
       <div id="understood" style="margin-bottom:10px">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">நான் புரிஞ்சுக்கிட்டது:</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">What I understood:</div>
         <div class="chips" id="steps"></div>
         <div id="warns"></div>
       </div>
@@ -143,10 +143,10 @@ label.chk{font-size:13px;color:#475467;display:flex;gap:6px;align-items:center}
         <button class="tab active" data-tab="table">Table</button>
         <button class="tab" data-tab="chart">Chart</button>
       </div>
-      <div id="tabTable"><div class="tablewrap" id="tableWrap"><div id="chartMsg">ஃபைலை ஏற்றினா டேட்டா இங்கே தெரியும்.</div></div></div>
+      <div id="tabTable"><div class="tablewrap" id="tableWrap"><div id="chartMsg">Load a file to see its data here.</div></div></div>
       <div id="tabChart" class="hidden">
         <div class="row" style="margin-bottom:8px">
-          <span style="font-size:13px;color:var(--muted)">Chart வகை:</span>
+          <span style="font-size:13px;color:var(--muted)">Chart type:</span>
           <select id="ctype"><option value="bar">Bar</option><option value="line">Line</option><option value="pie">Pie</option></select>
         </div>
         <div id="chartBox"><canvas id="chart"></canvas><div id="chartMsg2" class="hidden" style="color:var(--muted);padding:20px;text-align:center"></div></div>
@@ -156,19 +156,19 @@ label.chk{font-size:13px;color:#475467;display:flex;gap:6px;align-items:center}
     <!-- Side -->
     <aside style="display:grid;gap:14px;align-content:start">
       <section class="card">
-        <h2>கமாண்ட் ஹிஸ்டரி</h2>
-        <div class="hist" id="hist"><span style="color:var(--muted)">இன்னும் எதுவும் இல்லை.</span></div>
+        <h2>Command history</h2>
+        <div class="hist" id="hist"><span style="color:var(--muted)">Nothing yet.</span></div>
       </section>
       <section class="card help">
-        <h2>எப்படி கமாண்ட் கொடுக்கலாம்?</h2>
-        <div><b>Filter:</b> <code>Chennai மட்டும்</code> <code>City not Chennai</code> <code>Amount > 5000</code> <code>Amount 5000க்கு மேல்</code> <code>Amount between 1000 and 5000</code></div>
-        <div><b>மொத்தம் / சராசரி:</b> <code>City வாரியா Amount total</code> <code>total Amount by Region</code> <code>average Amount</code> <code>City wise count</code></div>
-        <div><b>தேதி:</b> <code>month wise Amount total</code> <code>January 2026</code> <code>Date after 01-01-2026</code></div>
-        <div><b>வரிசை / Top:</b> <code>Amount high to low</code> <code>sort by Name</code> <code>top 10 Amount</code> <code>top 5 City by Amount</code></div>
-        <div><b>மற்றவை:</b> <code>show Name, Amount</code> <code>unique City</code> <code>remove duplicates</code> <code>search raj</code> <code>Phone blank</code></div>
+        <h2>How to give commands</h2>
+        <div><b>Filter:</b> <code>only Chennai</code> <code>City not Chennai</code> <code>Amount > 5000</code> <code>Amount above 5000</code> <code>Amount between 1000 and 5000</code></div>
+        <div><b>Total / average:</b> <code>City wise Amount total</code> <code>total Amount by Region</code> <code>average Amount</code> <code>City wise count</code></div>
+        <div><b>Dates:</b> <code>month wise Amount total</code> <code>January 2026</code> <code>Date after 01-01-2026</code></div>
+        <div><b>Sort / top:</b> <code>Amount high to low</code> <code>sort by Name</code> <code>top 10 Amount</code> <code>top 5 City by Amount</code></div>
+        <div><b>Other:</b> <code>show Name, Amount</code> <code>unique City</code> <code>remove duplicates</code> <code>search raj</code> <code>Phone blank</code></div>
         <div><b>Chart:</b> <code>City wise Amount chart</code> <code>pie chart</code> <code>month wise Amount line chart</code></div>
-        <div style="margin-top:6px;color:var(--muted)">💡 ஒவ்வொரு கமாண்டும் முந்தைய முடிவின் மேல் வேலை செய்யும். புதுசா ஆரம்பிக்க “Original டேட்டா” அழுத்துங்க அல்லது கமாண்ட் முன்னாடி <code>reset</code> சேருங்க.</div>
-        <div style="color:var(--muted)">🎤 Column பெயர்கள் ஆங்கிலத்தில் இருந்தா, “English” வாய்ஸ் தேர்வு பண்ணா இன்னும் சரியா புரியும். தமிழ்ல பேசினாலும் (உதா: “சென்னை மட்டும்”) புரிஞ்சுக்க முயற்சி பண்ணும்.</div>
+        <div style="margin-top:6px;color:var(--muted)">💡 Each command works on the previous result. To start fresh, press “Original data” or begin the command with <code>reset</code>.</div>
+        <div style="color:var(--muted)">🎤 You can speak or type commands in English or Tamil. If your column names are in English, the “Voice: English” option recognises them best.</div>
       </section>
     </aside>
   </div>
@@ -257,7 +257,7 @@ async function unzip(buf) {
   for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
     if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
   }
-  if (eocd < 0) throw new Error('இது சரியான .xlsx ஃபைல் இல்லை (பழைய .xls என்றால் Excel-ல "Save As → .xlsx" பண்ணுங்க).');
+  if (eocd < 0) throw new Error('This is not a valid .xlsx file (for an old .xls file, open it in Excel and use "Save As → .xlsx").');
   const count = dv.getUint16(eocd + 10, true);
   let off = dv.getUint32(eocd + 16, true);
   const files = {}, lower = {};
@@ -281,10 +281,10 @@ async function unzip(buf) {
       let out;
       if (f.method === 0) out = data;
       else if (f.method === 8) {
-        if (typeof DecompressionStream === 'undefined') throw new Error('இந்த பிரவுசர் பழையது. Chrome அல்லது Edge புது வெர்ஷன் பயன்படுத்துங்க.');
+        if (typeof DecompressionStream === 'undefined') throw new Error('This browser is too old. Please use the latest Chrome or Edge.');
         const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
         out = new Uint8Array(await new Response(stream).arrayBuffer());
-      } else throw new Error('ஆதரிக்காத compression: ' + f.method);
+      } else throw new Error('Unsupported compression: ' + f.method);
       return new TextDecoder('utf-8').decode(out);
     }
   };
@@ -361,7 +361,7 @@ function parseSheetXml(xml, shared, dateStyles) {
 async function readXlsx(buf) {
   const z = await unzip(buf);
   const wb = await z.text('xl/workbook.xml');
-  if (!wb) throw new Error('Workbook கண்டுபிடிக்க முடியலை.');
+  if (!wb) throw new Error('Workbook not found in the file.');
   const relsXml = await z.text('xl/_rels/workbook.xml.rels') || '<r/>';
   const rel = {};
   for (const r of byTag(xmlDoc(relsXml), 'Relationship')) rel[r.getAttribute('Id')] = r.getAttribute('Target');
@@ -490,7 +490,7 @@ for (const k in K) K[k].sort((a, b) => b.length - a.length);
 const MONTHS = [['january', 'jan', 'ஜனவரி'], ['february', 'feb', 'பிப்ரவரி', 'பெப்ரவரி'], ['march', 'mar', 'மார்ச்'], ['april', 'apr', 'ஏப்ரல்'], ['may', 'மே'], ['june', 'jun', 'ஜூன்'], ['july', 'jul', 'ஜூலை'], ['august', 'aug', 'ஆகஸ்ட்', 'ஆகஸ்டு'], ['september', 'sept', 'sep', 'செப்டம்பர்'], ['october', 'oct', 'அக்டோபர்'], ['november', 'nov', 'நவம்பர்'], ['december', 'dec', 'டிசம்பர்']];
 const MON_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const AGG_LABEL = { sum: 'Total', avg: 'Average', count: 'Count', max: 'Max', min: 'Min' };
-const AGG_TA = { sum: 'மொத்தம்', avg: 'சராசரி', count: 'எண்ணிக்கை', max: 'அதிகபட்சம்', min: 'குறைந்தபட்சம்' };
+const AGG_TA = { sum: 'Total', avg: 'Average', count: 'Count', max: 'Max', min: 'Min' };
 const ALL_TA_KW = Object.values(K).flat().concat(MONTHS.flat()).filter(w => TA_RE.test(w));
 
 function findKw(s, words) {
@@ -687,7 +687,7 @@ function parseCommand(raw, T) {
     if (v.alts.length > 1) {
       const near = mentionNear(v.start, { gap: 25, pred: mm => v.alts.includes(mm.col) });
       if (near) ci = near.col;
-      else P.warnings.push(`"${v.orig}" பல column-களில் இருக்கு; "${H[ci]}" column-ஐ எடுத்துக்கிட்டேன்.`);
+      else P.warnings.push(`"${v.orig}" appears in several columns; used "${H[ci]}".`);
     }
     const near = mentionNear(v.start, { gap: 25, pred: mm => mm.col === ci }); if (near) near.used = true;
     const win = text.length ? W.s.slice(Math.max(0, v.start - 16), v.end + 16) : '';
@@ -710,7 +710,7 @@ function parseCommand(raw, T) {
     const near = mentionNear(dateLits[0].start, { gap: 40, pred: mm => types[mm.col] === 'date' });
     const col = near ? near.col : dateCols[0];
     if (near) near.used = true;
-    if (col === undefined) P.warnings.push('தேதி column கண்டுபிடிக்க முடியலை.');
+    if (col === undefined) P.warnings.push('No date column found.');
     else if (dateLits.length >= 2) P.filters.push({ op: 'dbetween', col, a: dateLits[0].iso, b: dateLits[1].iso });
     else {
       const d = dateLits[0], win = W.s.slice(Math.max(0, d.start - 18), d.end + 18);
@@ -723,7 +723,7 @@ function parseCommand(raw, T) {
   // ---- numeric ranges
   for (const r of ranges) {
     const col = mentionNear(r.start, { side: 'before', gap: 60, pred: mm => types[mm.col] === 'num' }) || mentionNear(r.end, { side: 'after', gap: 25, pred: mm => types[mm.col] === 'num' });
-    if (!col) { P.warnings.push(`${r.a}–${r.b}: எந்த column-னு புரியலை.`); continue; }
+    if (!col) { P.warnings.push(`${r.a}–${r.b}: could not tell which column.`); continue; }
     col.used = true; P.filters.push({ op: 'between', col: col.col, a: Math.min(r.a, r.b), b: Math.max(r.a, r.b) });
   }
   // ---- single numeric comparisons
@@ -734,7 +734,7 @@ function parseCommand(raw, T) {
     let col = mentionNear(n.start, { side: 'before', gap: 40, pred: mm => types[mm.col] === 'num' })
            || mentionNear(n.start, { side: 'before', gap: 40 })
            || mentionNear(n.end, { side: 'after', gap: 25 });
-    if (!col) { P.warnings.push(`"${n.v}" — எந்த column-க்குன்னு புரியலை (உதா: "Amount > ${n.v}").`); continue; }
+    if (!col) { P.warnings.push(`"${n.v}" — could not tell which column (e.g. "Amount > ${n.v}").`); continue; }
     col.used = true;
     const a = Math.min(col.end, n.start), b = Math.min(W.s.length, n.end + 22);
     const win = W.s.slice(a, b);
@@ -752,7 +752,7 @@ function parseCommand(raw, T) {
   for (const [words, op] of [[K.notblank, 'notblank'], [K.blank, 'blank']]) {
     for (const x of take(W, words)) {
       const col = mentionNear(x.start, { gap: 20 });
-      if (!col) { P.warnings.push('எந்த column காலியா இருக்கணும்னு சொல்லுங்க (உதா: "Phone blank").'); continue; }
+      if (!col) { P.warnings.push('Say which column should be blank (e.g. "Phone blank").'); continue; }
       col.used = true; P.filters.push({ op, col: col.col });
     }
   }
@@ -772,7 +772,7 @@ function parseCommand(raw, T) {
   if (mh.length || yh.length) {
     const near = mentionNear((mh[0] || yh[0]).start, { gap: 30, pred: mm => types[mm.col] === 'date' });
     const col = near ? near.col : dateCols[0];
-    if (col === undefined) P.warnings.push('மாதம்/வருடம் வாரியா பிரிக்க தேதி column இல்லை.');
+    if (col === undefined) P.warnings.push('No date column to group by month/year.');
     else { if (near) near.used = true; P.period = { kind: mh.length ? 'month' : 'year', col }; }
   }
   for (const x of take(W, K.byAfter)) {
@@ -790,7 +790,7 @@ function parseCommand(raw, T) {
   }
   for (const x of take(W, K.unique)) {
     const mm = mentionNear(x.end, { side: 'after', gap: 4 }) || mentionNear(x.start, { side: 'before', gap: 4 });
-    if (mm) { mm.used = true; P.unique = mm.col; } else P.warnings.push('எந்த column-ல unique வேணும்னு சொல்லுங்க.');
+    if (mm) { mm.used = true; P.unique = mm.col; } else P.warnings.push('Say which column you want unique values for.');
   }
   for (const a of ['sum', 'avg', 'count', 'max', 'min']) if (take(W, K[a]).length) P.aggs.push(a);
 
@@ -865,20 +865,20 @@ function testFilter(f, r) {
   return true;
 }
 function describeFilter(f, H) {
-  const c = f.col >= 0 ? H[f.col] : 'எல்லா columns';
+  const c = f.col >= 0 ? H[f.col] : 'All columns';
   const sym = { gt: '>', lt: '<', gte: '≥', lte: '≤', eq: '=', neq: '≠' };
   switch (f.op) {
     case 'in': return `${c} = ${f.values.join(' / ')}`;
     case 'notin': return `${c} ≠ ${f.values.join(' / ')}`;
-    case 'between': return `${c}: ${fmtNum(f.a)} முதல் ${fmtNum(f.b)} வரை`;
-    case 'blank': return `${c} காலியானவை`;
-    case 'notblank': return `${c} காலி இல்லாதவை`;
-    case 'contains': return `${c}-ல் "${f.value}" உள்ளவை`;
-    case 'month': return `${c}: ${f.months.map(x => MON_EN[x.m - 1] + (x.y ? ' ' + x.y : '')).join(', ')} மாதம்`;
+    case 'between': return `${c}: ${fmtNum(f.a)} to ${fmtNum(f.b)}`;
+    case 'blank': return `${c} is blank`;
+    case 'notblank': return `${c} is not blank`;
+    case 'contains': return `${c} contains "${f.value}"`;
+    case 'month': return `${c}: ${f.months.map(x => MON_EN[x.m - 1] + (x.y ? ' ' + x.y : '')).join(', ')}`;
     case 'dafter': return `${c} ≥ ${f.a}`;
     case 'dbefore': return `${c} ≤ ${f.a}`;
     case 'deq': return `${c} = ${f.a}`;
-    case 'dbetween': return `${c}: ${f.a} முதல் ${f.b} வரை`;
+    case 'dbetween': return `${c}: ${f.a} to ${f.b}`;
     default: return `${c} ${sym[f.op]} ${typeof f.value === 'number' ? fmtNum(f.value) : f.value}`;
   }
 }
@@ -889,7 +889,7 @@ function execute(P, T) {
   if (P.dedupe) {
     const seen = new Set(), before = rows.length;
     rows = rows.filter(r => { const k = JSON.stringify(r); if (seen.has(k)) return false; seen.add(k); return true; });
-    steps.push(`நகல் rows நீக்கம்: ${before - rows.length}`);
+    steps.push(`Duplicate rows removed: ${before - rows.length}`);
   }
   let out = { name: T.name, headers: H.slice(), rows, types: T.types.slice() };
   let mapCol = i => i;
@@ -903,12 +903,12 @@ function execute(P, T) {
     if (!aggs.length) aggs = valueCols.length ? ['sum'] : ['count'];
     if (aggs.some(a => a !== 'count') && !valueCols.length) {
       valueCols = T.types.map((t, i) => t === 'num' && !groupCols.includes(i) && !isIdLike(H[i]) ? i : -1).filter(i => i >= 0).slice(0, 6);
-      if (valueCols.length) warnings.push(`எந்த column-க்குன்னு சொல்லலை — எண் column-கள் எல்லாத்துக்கும் (${valueCols.map(i => H[i]).join(', ')}) போட்டிருக்கேன்.`);
-      else { aggs = ['count']; warnings.push('எண் column இல்லாததால எண்ணிக்கை (count) மட்டும் காட்டுறேன்.'); }
+      if (valueCols.length) warnings.push(`No value column given — showing it for all number columns (${valueCols.map(i => H[i]).join(', ')}).`);
+      else { aggs = ['count']; warnings.push('No number column, so showing count only.'); }
     }
     const keyCols = [];
-    if (P.period) keyCols.push({ name: P.period.kind === 'month' ? 'Month' : 'Year', get: r => { const d = cellISO(r[P.period.col]); return d ? d.slice(0, P.period.kind === 'month' ? 7 : 4) : '(தேதி இல்லை)'; } });
-    for (const g of groupCols) keyCols.push({ name: H[g], get: r => isEmpty(r[g]) ? '(காலி)' : r[g], src: g });
+    if (P.period) keyCols.push({ name: P.period.kind === 'month' ? 'Month' : 'Year', get: r => { const d = cellISO(r[P.period.col]); return d ? d.slice(0, P.period.kind === 'month' ? 7 : 4) : '(no date)'; } });
+    for (const g of groupCols) keyCols.push({ name: H[g], get: r => isEmpty(r[g]) ? '(blank)' : r[g], src: g });
     const aggCols = [];
     if (aggs.includes('count')) aggCols.push({ name: 'Count', type: 'count' });
     for (const a of aggs) if (a !== 'count') for (const c of valueCols) aggCols.push({ name: `${AGG_LABEL[a]} ${H[c]}`, type: a, col: c });
@@ -945,8 +945,8 @@ function execute(P, T) {
       const ai = aggCols.findIndex(a => a.col === i); return ai >= 0 ? nk + ai : -1;
     };
     out.firstAgg = nk;
-    if (P.period) steps.push(`${P.period.kind === 'month' ? 'மாதம்' : 'வருடம்'} வாரியாக (${H[P.period.col]})`);
-    if (groupCols.length) steps.push(`${groupCols.map(g => H[g]).join(' + ')} வாரியாக`);
+    if (P.period) steps.push(`Group by ${P.period.kind === 'month' ? 'month' : 'year'} (${H[P.period.col]})`);
+    if (groupCols.length) steps.push(`Group by ${groupCols.map(g => H[g]).join(' + ')}`);
     steps.push(aggs.map(a => AGG_TA[a] + (a === 'count' ? '' : ': ' + valueCols.map(c => H[c]).join(', '))).join(' | '));
   }
 
@@ -968,11 +968,11 @@ function execute(P, T) {
       if (ea || eb) return ea && eb ? 0 : ea ? 1 : -1;
       return sgn * cmpVals(a[sortIdx], b[sortIdx]);
     });
-    steps.push(`வரிசை: ${out.headers[sortIdx]} (${dir === 'desc' ? 'அதிகம் → குறைவு' : 'குறைவு → அதிகம்'})`);
+    steps.push(`Sort: ${out.headers[sortIdx]} (${dir === 'desc' ? 'high → low' : 'low → high'})`);
   }
   if (P.limit) {
     out.rows = P.limit.from === 'top' ? out.rows.slice(0, P.limit.n) : (sortIdx >= 0 ? out.rows.slice(0, P.limit.n) : out.rows.slice(-P.limit.n));
-    steps.push(`${P.limit.from === 'top' ? 'முதல்' : 'கடைசி'} ${P.limit.n}`);
+    steps.push(`${P.limit.from === 'top' ? 'Top' : 'Bottom'} ${P.limit.n}`);
   }
   if (P.select) {
     const idx = P.select.map(mapCol).filter(i => i >= 0);
@@ -1053,7 +1053,7 @@ function drawChart(T, type) {
   const nums = T.types.map((t, i) => t === 'num' ? i : -1).filter(i => i >= 0 && i !== li);
   if (!T.rows.length || !nums.length) {
     cv.classList.add('hidden'); msg.classList.remove('hidden');
-    msg.textContent = 'Chart போட எண் column வேணும். உதா: "City வாரியா Amount chart" அல்லது "City wise count chart".';
+    msg.textContent = 'A chart needs a number column. For example: "City wise Amount chart" or "City wise count chart".';
     return false;
   }
   cv.classList.remove('hidden'); msg.classList.add('hidden');
@@ -1062,14 +1062,14 @@ function drawChart(T, type) {
   const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, Wd, Hd);
   ctx.font = '12px "Nirmala UI","Noto Sans Tamil",sans-serif'; ctx.textBaseline = 'middle';
-  const label = (r, i) => li >= 0 ? (isEmpty(r[li]) ? '(காலி)' : String(r[li])) : String(i + 1);
+  const label = (r, i) => li >= 0 ? (isEmpty(r[li]) ? '(blank)' : String(r[li])) : String(i + 1);
   const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
   let rows = T.rows, note = '';
 
   if (type === 'pie') {
     const vi = nums[0];
     let items = rows.map((r, i) => ({ l: label(r, i), v: typeof r[vi] === 'number' ? Math.max(0, r[vi]) : 0 })).filter(x => x.v > 0).sort((a, b) => b.v - a.v);
-    if (items.length > 11) { const rest = items.slice(11).reduce((s, x) => s + x.v, 0); items = items.slice(0, 11).concat([{ l: 'மற்றவை', v: rest }]); }
+    if (items.length > 11) { const rest = items.slice(11).reduce((s, x) => s + x.v, 0); items = items.slice(0, 11).concat([{ l: 'Others', v: rest }]); }
     const total = items.reduce((s, x) => s + x.v, 0) || 1;
     const cx = Math.min(Wd * 0.32, 230), cy = Hd / 2 + 10, R = Math.min(cx - 20, Hd / 2 - 40);
     let a0 = -Math.PI / 2;
@@ -1090,7 +1090,7 @@ function drawChart(T, type) {
 
   const series = nums.slice(0, 3);
   const cap = type === 'line' ? 300 : 40;
-  if (rows.length > cap) { rows = rows.slice(0, cap); note = `(முதல் ${cap} மட்டும் காட்டப்படுது)`; }
+  if (rows.length > cap) { rows = rows.slice(0, cap); note = `(showing first ${cap} only)`; }
   let max = 0, min = 0;
   for (const r of rows) for (const s of series) if (typeof r[s] === 'number') { max = Math.max(max, r[s]); min = Math.min(min, r[s]); }
   if (max === min) max = min + 1;
@@ -1145,7 +1145,7 @@ function drawChart(T, type) {
 function setStatus(msg, err) { const s = $('#status'); s.textContent = msg || ''; s.className = err ? 'err' : ''; }
 function renderTable(T) {
   const wrap = $('#tableWrap');
-  if (!T.headers.length) { wrap.innerHTML = '<div id="chartMsg">இந்த sheet-ல டேட்டா இல்லை.</div>'; return; }
+  if (!T.headers.length) { wrap.innerHTML = '<div id="chartMsg">This sheet has no data.</div>'; return; }
   const MAXR = 1000, num = T.types.map(t => t === 'num'), idc = T.headers.map(isIdLike);
   let html = '<table><thead><tr><th class="rowno">#</th>' + T.headers.map((h, i) => `<th class="${num[i] ? 'n' : ''}">${xesc(h)}</th>`).join('') + '</tr></thead><tbody>';
   const show = T.rows.slice(0, MAXR);
@@ -1155,7 +1155,7 @@ function renderTable(T) {
   html += '</tbody>';
   if (num.some(Boolean) && T.rows.length > 1) {
     html += '<tfoot><tr><td class="rowno"></td>' + T.headers.map((h, i) => {
-      if (!num[i] || isIdLike(h) || /^(average|max|min)\b/i.test(h)) return i === 0 ? '<td>மொத்தம்</td>' : '<td></td>';
+      if (!num[i] || isIdLike(h) || /^(average|max|min)\b/i.test(h)) return i === 0 ? '<td>Total</td>' : '<td></td>';
       let s = 0; for (const r of T.rows) if (typeof r[i] === 'number') s += r[i];
       return `<td class="n">${fmtNum(Math.round(s * 100) / 100)}</td>`;
     }).join('') + '</tr></tfoot>';
@@ -1163,8 +1163,8 @@ function renderTable(T) {
   html += '</table>';
   wrap.innerHTML = html;
   $('#meta').textContent = `${T.rows.length.toLocaleString('en-IN')} rows × ${T.headers.length} columns` +
-    (state.original && T !== state.original ? `  (மொத்தம் ${state.original.rows.length.toLocaleString('en-IN')} rows-ல் இருந்து)` : '') +
-    (T.rows.length > MAXR ? ` — முதல் ${MAXR} rows திரையில்; டவுன்லோட்டில் எல்லாமே இருக்கும்` : '');
+    (state.original && T !== state.original ? `  (from ${state.original.rows.length.toLocaleString('en-IN')} total rows)` : '') +
+    (T.rows.length > MAXR ? ` — first ${MAXR} rows shown; the download has all rows` : '');
 }
 function setTab(name) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
@@ -1179,7 +1179,7 @@ function renderAll(res) {
   const und = $('#understood');
   if (res) {
     und.style.display = 'block';
-    $('#steps').innerHTML = res.steps.map(s => `<span class="chip step">${xesc(s)}</span>`).join('') || '<span class="chip step">மாற்றம் இல்லை</span>';
+    $('#steps').innerHTML = res.steps.map(s => `<span class="chip step">${xesc(s)}</span>`).join('') || '<span class="chip step">No change</span>';
     $('#warns').innerHTML = res.warnings.map(w => `<div class="warn">⚠ ${xesc(w)}</div>`).join('');
   } else und.style.display = 'none';
   ['#dlx', '#dlc', '#dlp'].forEach(id => $(id).disabled = !T);
@@ -1187,7 +1187,7 @@ function renderAll(res) {
   $('#reset').disabled = !state.history.length;
   $('#hist').innerHTML = state.history.length
     ? state.history.map((h, i) => `<div>${i + 1}. ${xesc(h.cmd)} <span style="color:var(--muted)">→ ${h.table.rows.length} rows</span></div>`).join('')
-    : '<span style="color:var(--muted)">இன்னும் எதுவும் இல்லை.</span>';
+    : '<span style="color:var(--muted)">Nothing yet.</span>';
   if (res && res.chart) { $('#ctype').value = res.chart; setTab('chart'); }
   else if (!$('#tabChart').classList.contains('hidden')) drawChart(T, $('#ctype').value);
 }
@@ -1202,8 +1202,8 @@ function renderColumns(T) {
   let tc = -1, bestScore = -1;
   ty.forEach((t, i) => { if (t !== 'text') return; const d = distinct(T, i).size; const sc = d >= 2 && d <= 60 ? 100 - d : d > 60 ? 1 : 0; if (sc > bestScore) { bestScore = sc; tc = i; } });
   const ex = [];
-  if (tc >= 0 && nc >= 0) ex.push(`${H[tc]} வாரியா ${H[nc]} total`);
-  if (tc >= 0) { const top = [...distinct(T, tc).values()].sort((a, b) => b.n - a.n)[0]; if (top) ex.push(`${top.orig} மட்டும்`); }
+  if (tc >= 0 && nc >= 0) ex.push(`${H[tc]} wise ${H[nc]} total`);
+  if (tc >= 0) { const top = [...distinct(T, tc).values()].sort((a, b) => b.n - a.n)[0]; if (top) ex.push(`only ${top.orig}`); }
   if (nc >= 0) {
     const vals = T.rows.map(r => r[nc]).filter(v => typeof v === 'number').sort((a, b) => a - b);
     if (vals.length) { let med = vals[Math.floor(vals.length / 2)]; const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(med) || 1)))); med = Math.round(med / p) * p; ex.push(`${H[nc]} > ${med}`); }
@@ -1220,26 +1220,26 @@ function renderColumns(T) {
   $('#exWrap').classList.remove('hidden');
 }
 async function loadSheet(i) {
-  setStatus('Sheet ஏற்றப்படுது…');
+  setStatus('Loading sheet…');
   const T = await state.sheets[i].load();
   state.original = T; state.current = T; state.history = [];
   renderColumns(T); renderAll(null);
-  setStatus(`✅ "${T.name}" ஏற்றப்பட்டது — ${T.rows.length.toLocaleString('en-IN')} rows. இப்போ கமாண்ட் கொடுங்க.`);
+  setStatus(`✅ "${T.name}" loaded — ${T.rows.length.toLocaleString('en-IN')} rows. Now give a command.`);
 }
 async function handleFile(file) {
   if (!file) return;
   try {
-    setStatus('ஃபைல் படிக்கப்படுது…');
+    setStatus('Reading file…');
     state.fileName = file.name.replace(/\.[^.]+$/, '');
     const buf = await file.arrayBuffer();
     if (/\.(csv|txt)$/i.test(file.name)) {
       const T = buildTable(parseCSV(new TextDecoder('utf-8').decode(buf)), 'CSV');
       state.sheets = [{ name: 'CSV', load: async () => T }];
     } else if (/\.xls$/i.test(file.name)) {
-      throw new Error('பழைய .xls ஃபைல் ஆதரிக்கப்படலை. Excel-ல திறந்து "Save As → Excel Workbook (.xlsx)" பண்ணுங்க.');
+      throw new Error('Old .xls files are not supported. Open it in Excel and use "Save As → Excel Workbook (.xlsx)".');
     } else {
       state.sheets = await readXlsx(buf);
-      if (!state.sheets.length) throw new Error('Sheet எதுவும் கிடைக்கலை.');
+      if (!state.sheets.length) throw new Error('No sheets found.');
     }
     $('#fileInfo').textContent = `📄 ${file.name}  (${(file.size / 1024).toFixed(0)} KB)`;
     $('#sheet').innerHTML = state.sheets.map((s, i) => `<option value="${i}">${xesc(s.name)}</option>`).join('');
@@ -1250,7 +1250,7 @@ async function handleFile(file) {
 function runCommand(cmdText) {
   const cmd = (cmdText ?? $('#cmd').value).trim();
   if (!cmd) return;
-  if (!state.original) { setStatus('முதல்ல ஒரு Excel ஃபைலை ஏற்றுங்க.', true); return; }
+  if (!state.original) { setStatus('Load an Excel file first.', true); return; }
   try {
     const chain = $('#chain').checked;
     let base = chain && state.current ? state.current : state.original;
@@ -1259,7 +1259,7 @@ function runCommand(cmdText) {
     if (P.reset) base = state.original;
     if (P.reset && P.empty === false && !P.filters.length && !P.group.length && !P.period && P.unique === null && !P.aggs.length && P.sortCol === null && !P.dir && !P.limit && !P.select && !P.chart && !P.dedupe) { resetAll(); return; }
     if (P.empty) {
-      setStatus(`🤔 "${cmd}" — புரியலை. Column பெயரை சேர்த்து சொல்லுங்க (உதா: "${base.headers[0] || 'City'} வாரியா total"), அல்லது கீழே உள்ள உதாரணங்களை கிளிக் பண்ணுங்க.`, true);
+      setStatus(`🤔 "${cmd}" — not understood. Include a column name (e.g. "${base.headers[0] || 'City'} wise total"), or click one of the examples below.`, true);
       if (P.warnings.length) $('#warns').innerHTML = P.warnings.map(w => `<div class="warn">⚠ ${xesc(w)}</div>`).join('');
       return;
     }
@@ -1268,9 +1268,9 @@ function runCommand(cmdText) {
     state.history.push({ cmd, table: res.table, res });
     state.current = res.table;
     renderAll(res);
-    setStatus(res.table.rows.length ? `✅ முடிஞ்சது — ${res.table.rows.length.toLocaleString('en-IN')} rows.` : '⚠ இந்த நிபந்தனைக்கு rows எதுவும் கிடைக்கலை. Undo பண்ணி வேற மாதிரி ட்ரை பண்ணுங்க.', !res.table.rows.length);
+    setStatus(res.table.rows.length ? `✅ Done — ${res.table.rows.length.toLocaleString('en-IN')} rows.` : '⚠ No rows match this condition. Press Undo and try a different command.', !res.table.rows.length);
     $('#cmd').select();
-  } catch (e) { console.error(e); setStatus('❌ பிழை: ' + (e.message || e), true); }
+  } catch (e) { console.error(e); setStatus('❌ Error: ' + (e.message || e), true); }
 }
 function undo() {
   if (!state.history.length) return;
@@ -1278,28 +1278,28 @@ function undo() {
   const last = state.history[state.history.length - 1];
   state.current = last ? last.table : state.original;
   renderAll(last ? last.res : null);
-  setStatus('↶ முந்தைய நிலைக்கு திரும்பியாச்சு.');
+  setStatus('↶ Back to the previous result.');
 }
 function resetAll() {
-  state.history = []; state.current = state.original; renderAll(null); setStatus('⟲ Original டேட்டா காட்டப்படுது.');
+  state.history = []; state.current = state.original; renderAll(null); setStatus('⟲ Showing the original data.');
 }
 
 /* ---- voice ---- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, listening = false;
 function toggleMic() {
-  if (!SR) { setStatus('இந்த பிரவுசரில் வாய்ஸ் வசதி இல்லை. Google Chrome அல்லது Microsoft Edge பயன்படுத்துங்க.', true); return; }
+  if (!SR) { setStatus('Voice input is not available in this browser. Please use Google Chrome or Microsoft Edge.', true); return; }
   if (listening) { rec && rec.stop(); return; }
   rec = new SR(); rec.lang = $('#lang').value; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
   let finalText = '';
-  rec.onstart = () => { listening = true; $('#mic').classList.add('listening'); setStatus('🎤 கேட்டுக்கிட்டு இருக்கேன்… பேசுங்க'); };
+  rec.onstart = () => { listening = true; $('#mic').classList.add('listening'); setStatus('🎤 Listening… speak now'); };
   rec.onresult = e => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) finalText += t; else interim += t; }
     $('#cmd').value = (finalText + ' ' + interim).trim();
   };
   rec.onerror = e => {
-    const m = { 'not-allowed': 'மைக் அனுமதி மறுக்கப்பட்டது. Address bar-ல 🔒/மைக் ஐகான் கிளிக் பண்ணி Allow கொடுங்க.', 'network': 'வாய்ஸுக்கு இன்டர்நெட் தேவை (Chrome-ன் speech சேவை). இன்டர்நெட் இல்லைன்னா டைப் பண்ணுங்க.', 'no-speech': 'எதுவும் கேட்கலை. மறுபடி ட்ரை பண்ணுங்க.', 'audio-capture': 'மைக் கண்டுபிடிக்க முடியலை.' };
+    const m = { 'not-allowed': 'Microphone permission was denied. Click the 🔒/mic icon in the address bar and choose Allow.', 'network': 'Voice input needs an internet connection (browser speech service). Without internet, please type the command.', 'no-speech': 'Nothing was heard. Please try again.', 'audio-capture': 'No microphone found.' };
     setStatus('🎤 ' + (m[e.error] || e.error), true);
   };
   rec.onend = () => { listening = false; $('#mic').classList.remove('listening'); if (finalText.trim()) { $('#cmd').value = finalText.trim(); runCommand(finalText.trim()); } };
@@ -1317,7 +1317,7 @@ $('#sheet').addEventListener('change', e => loadSheet(+e.target.value));
 $('#run').addEventListener('click', () => runCommand());
 $('#cmd').addEventListener('keydown', e => { if (e.key === 'Enter') runCommand(); });
 $('#mic').addEventListener('click', toggleMic);
-if (!SR) $('#mic').title = 'வாய்ஸ் வசதிக்கு Chrome / Edge தேவை';
+if (!SR) $('#mic').title = 'Voice needs Chrome or Edge';
 $('#undo').addEventListener('click', undo);
 $('#reset').addEventListener('click', resetAll);
 $('#cols').addEventListener('click', e => { const c = e.target.closest('[data-col]'); if (!c) return; const inp = $('#cmd'); inp.value = (inp.value.trim() + ' ' + c.dataset.col + ' ').trimStart(); inp.focus(); });

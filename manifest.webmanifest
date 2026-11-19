@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Tech Solutions Excel Assistant",
-  "short_name": "Excel Assistant",
+  "name": "Tech Solutions Data Assistant",
+  "short_name": "Data Assistant",
   "description": "Upload an Excel or CSV file and get filtered tables, totals and charts by typing or speaking a command in Tamil or English. Your data never leaves your computer.",
   "start_url": "./",
   "scope": "./",

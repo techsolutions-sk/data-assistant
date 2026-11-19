@@ -1,5 +1,5 @@
-// Tech Solutions Excel Assistant — offline cache
-const CACHE = 'excel-assistant-v1';
+// Tech Solutions Data Assistant — offline cache
+const CACHE = 'data-assistant-v2';
 const FILES = ['./', 'index.html', 'privacy.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'maskable-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
